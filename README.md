@@ -2,10 +2,12 @@
 Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in Python3
 
 Based on WK Selph's Blogpost:
+
 http://howtohft.wordpress.com/2011/02/15/how-to-build-a-fast-limit-order-book/
 
 Available at Archive.org's WayBackMachine:
-(https://goo.gl/KF1SRm)
+
+https://goo.gl/KF1SRm
 
 
     "There are three main operations that a limit order book (LOB) has to
