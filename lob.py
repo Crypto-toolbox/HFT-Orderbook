@@ -355,16 +355,18 @@ class LimitLevel:
             if current_node.is_root or limit_level.price > current_node.price:
                 if current_node.right_child is None:
                     current_node.right_child = limit_level
-                    current_node.right_child.parent = self
+                    current_node.right_child.parent = current_node
                     current_node.right_child.balance_grandpa()
+                    break
                 else:
                     current_node = current_node.right_child
                     continue
-            elif limit_level.price < self.price:
+            elif limit_level.price < current_node.price:
                 if current_node.left_child is None:
                     current_node.left_child = limit_level
-                    current_node.left_child.parent = self
+                    current_node.left_child.parent = current_node
                     current_node.left_child.balance_grandpa()
+                    break
                 else:
                     current_node = current_node.left_child
                     continue
