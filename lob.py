@@ -342,7 +342,7 @@ class LimitLevel:
         return self.orders.append(order)
 
     def insert(self, limit_level):
-        """Recursive AVL Insert method to insert a new Node.
+        """Iterative AVL Insert method to insert a new Node.
 
         Inserts a new node and calls the grand-parent's balance() method -
         but only if it isn't root.
@@ -350,23 +350,27 @@ class LimitLevel:
         :param value:
         :return:
         """
-        if self.is_root or limit_level.price > self.price:
-            if self.right_child is None:
-                self.right_child = limit_level
-                self.right_child.parent = self
-                self.right_child.balance_grandpa()
+        current_node = self
+        while True:
+            if current_node.is_root or limit_level.price > current_node.price:
+                if current_node.right_child is None:
+                    current_node.right_child = limit_level
+                    current_node.right_child.parent = self
+                    current_node.right_child.balance_grandpa()
+                else:
+                    current_node = current_node.right_child
+                    continue
+            elif limit_level.price < self.price:
+                if current_node.left_child is None:
+                    current_node.left_child = limit_level
+                    current_node.left_child.parent = self
+                    current_node.left_child.balance_grandpa()
+                else:
+                    current_node = current_node.left_child
+                    continue
             else:
-                self.right_child.insert(limit_level)
-        elif limit_level.price < self.price:
-            if self.left_child is None:
-                self.left_child = limit_level
-                self.left_child.parent = self
-                self.left_child.balance_grandpa()
-            else:
-                self.left_child.insert(limit_level)
-        else:
-            # The level already exists
-            return
+                # The level already exists
+                break
 
     def _replace_node_in_parent(self, new_value=None):
         """Replaces Node in parent on a delete() call.
