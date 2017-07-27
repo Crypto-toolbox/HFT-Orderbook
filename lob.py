@@ -388,36 +388,31 @@ class LimitLevel:
         if new_value:
             new_value.parent = self.parent
 
-    def delete(self, limit_level):
-        """Delete a limit level.
+    def delete(self):
+        """Delete this limit level.
 
-        :param limit_level:
         :return:
         """
-        if limit_level.price < self.price:
-            self.left_child.delete(limit_level)
-        elif limit_level.price > self.price:
-            self.right_child.delete(limit_level)
-        else:
-            if self.left_child and self.right_child:
-                # We have two kids
-                succ = self.right_child.min
 
-                # Swap Successor and current node
-                self.left_child, succ.left_child = succ.left_child, self.left_child
-                self.right_child, succ.right_child = succ.right_child, self.right_child
-                self.parent, succ.parent = succ.parent, self.parent
-                self.delete(limit_level)
-                self.balance_grandpa()
-            elif self.left_child:
-                # Only left child
-                self._replace_node_in_parent(self.left_child)
-            elif self.right_child:
-                # Only right child
-                self._replace_node_in_parent(self.right_child)
-            else:
-                # No children
-                self._replace_node_in_parent(None)
+        if self.left_child and self.right_child:
+            # We have two kids
+            succ = self.right_child.min
+
+            # Swap Successor and current node
+            self.left_child, succ.left_child = succ.left_child, self.left_child
+            self.right_child, succ.right_child = succ.right_child, self.right_child
+            self.parent, succ.parent = succ.parent, self.parent
+            self.delete()
+            self.balance_grandpa()
+        elif self.left_child:
+            # Only left child
+            self._replace_node_in_parent(self.left_child)
+        elif self.right_child:
+            # Only right child
+            self._replace_node_in_parent(self.right_child)
+        else:
+            # No children
+            self._replace_node_in_parent(None)
 
     def balance_grandpa(self):
         """Check if our grandparent needs rebalancing.
@@ -428,8 +423,8 @@ class LimitLevel:
             # If our grandpa is root, we do nothing.
             pass
         elif self.grandpa and not self.grandpa.is_root:
-            # Check the balance.
-            self.balance()
+            # Tell the grandpa to check his balance.
+            self.grandpa.balance()
         elif self.grandpa is None:
             # We don't have a grandpa!
             pass
