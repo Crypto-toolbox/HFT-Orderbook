@@ -181,7 +181,7 @@ class LimitOrderBook:
         """
         size_diff = self._orders[order.uid].size - order.size
         self._orders[order.uid].size = order.size
-        self._orders[order.uid].parent_limi.size -= size_diff
+        self._orders[order.uid].parent_limit.size -= size_diff
 
     def remove(self, order):
         """Removes an order from the book.
@@ -211,11 +211,11 @@ class LimitOrderBook:
                 if order.is_bid:
                     if popped_limit_level == self.best_bid:
                         self.best_bid = popped_limit_level.parent
-                    self.bids.delete(popped_limit_level)
+                    self.bids.remove(popped_limit_level)
                 else:
                     if popped_limit_level == self.best_ask:
                         self.best_ask = popped_limit_level.parent
-                    self.asks.delete(popped_limit_level)
+                    self.asks.remove(popped_limit_level)
         except KeyError:
             pass
 
@@ -227,18 +227,25 @@ class LimitOrderBook:
         :param order: Order() Instance
         :return:
         """
-        limit_level = LimitLevel(order.price, 0)
-        limit_level.append(order)
-        if order.is_bid:
-            self.bids.insert(limit_level)
-            if limit_level.price > self.best_bid.price:
-                self.best_bid = limit_level
 
+        if order.price not in self._price_levels:
+            limit_level = LimitLevel(order)
+            self._orders[order.uid] = order
+            self._price_levels[limit_level.price] = limit_level
+
+            if order.is_bid:
+                self.bids.insert(limit_level)
+                if self.best_bid is None or limit_level.price > self.best_bid.price:
+                    self.best_bid = limit_level
+
+            else:
+                self.asks.insert(limit_level)
+                if self.best_ask is None or limit_level.price < self.best_ask.price:
+                    self.best_ask = limit_level
         else:
-            self.asks.insert(limit_level)
-            if limit_level.price < self.best_ask.price:
-                self.best_ask = limit_level
-
+            # The price level already exists, hence we need to append the order
+            # to that price level
+            self._price_levels[order.price].append(order)
 
 class LimitLevel:
     """AVL BST node.
@@ -260,29 +267,31 @@ class LimitLevel:
         height: Height of this Node
         balance: Balance factor of this Node
     """
-    __slots__ = ['price', 'size', 'is_root', 'parent', 'left_child',
+    __slots__ = ['price', 'size', 'parent', 'left_child',
                  'right_child', 'head', 'tail', 'count', 'orders']
 
-    def __init__(self, price, size, is_root=False):
+    def __init__(self, order):
         """Initialize a Node() instance.
 
-        :param price:
-        :param size:
+        :param order:
         :param is_root:
         """
         # Data Values
-        self.price = price
-        self.size = size
-        self.count = 0
+        self.price = order.price
+        self.size = order.size
 
         # BST Attributes
-        self.is_root = is_root
         self.parent = None
         self.left_child = None
         self.right_child = None
 
         # Doubly-Linked-list attributes
-        self.orders = None
+        self.orders = OrderList(self)
+        self.append(order)
+
+    @property
+    def is_root(self):
+        return isinstance(self.parent, LimitLevelTree)
 
     @property
     def volume(self):
@@ -304,9 +313,12 @@ class LimitLevel:
 
     @property
     def grandpa(self):
-        if self.parent:
-            return self.parent.parent
-        else:
+        try:
+            if self.parent:
+                return self.parent.parent
+            else:
+                return None
+        except AttributeError:
             return None
 
     @property
@@ -340,39 +352,6 @@ class LimitLevel:
         :return:
         """
         return self.orders.append(order)
-
-    def insert(self, limit_level):
-        """Iterative AVL Insert method to insert a new Node.
-
-        Inserts a new node and calls the grand-parent's balance() method -
-        but only if it isn't root.
-
-        :param value:
-        :return:
-        """
-        current_node = self
-        while True:
-            if current_node.is_root or limit_level.price > current_node.price:
-                if current_node.right_child is None:
-                    current_node.right_child = limit_level
-                    current_node.right_child.parent = current_node
-                    current_node.right_child.balance_grandpa()
-                    break
-                else:
-                    current_node = current_node.right_child
-                    continue
-            elif limit_level.price < current_node.price:
-                if current_node.left_child is None:
-                    current_node.left_child = limit_level
-                    current_node.left_child.parent = current_node
-                    current_node.left_child.balance_grandpa()
-                    break
-                else:
-                    current_node = current_node.left_child
-                    continue
-            else:
-                # The level already exists
-                break
 
     def _replace_node_in_parent(self, new_value=None):
         """Replaces Node in parent on a delete() call.
@@ -538,15 +517,52 @@ class LimitLevel:
         return s + left_side_print + right_side_print
 
     def __len__(self):
-        return self.orders.count
+        return len(self.orders)
 
 
-class LimitLevelTree(LimitLevel):
+class LimitLevelTree:
     """AVL BST Root Node.
 
     """
+    __slots__ = ['right_child', 'is_root']
+
     def __init__(self):
-        super(LimitLevelTree, self).__init__(None, None, is_root=True)
+        # BST Attributes
+        self.right_child = None
+        self.is_root = True
+
+    def insert(self, limit_level):
+        """Iterative AVL Insert method to insert a new Node.
+
+        Inserts a new node and calls the grand-parent's balance() method -
+        but only if it isn't root.
+
+        :param value:
+        :return:
+        """
+        current_node = self
+        while True:
+            if current_node.is_root or limit_level.price > current_node.price:
+                if current_node.right_child is None:
+                    current_node.right_child = limit_level
+                    current_node.right_child.parent = current_node
+                    current_node.right_child.balance_grandpa()
+                    break
+                else:
+                    current_node = current_node.right_child
+                    continue
+            elif limit_level.price < current_node.price:
+                if current_node.left_child is None:
+                    current_node.left_child = limit_level
+                    current_node.left_child.parent = current_node
+                    current_node.left_child.balance_grandpa()
+                    break
+                else:
+                    current_node = current_node.left_child
+                    continue
+            else:
+                # The level already exists
+                break
 
 
 class OrderList:
@@ -585,6 +601,7 @@ class OrderList:
             order.root = self
             self.tail = order
             self.head = order
+            self.count += 1
         else:
             self.tail.append(order)
 
@@ -622,25 +639,26 @@ class Order:
     def parent_limit(self):
         return self.root.parent_limit
 
-    def append(self, item):
-        """Append an item.
+    def append(self, order):
+        """Append an order.
 
-        :param item: Order() instance
+        :param order: Order() instance
         :return:
         """
+        print("ORDER APPEND CALLED!")
         if self.next_item is None:
-            self.next_item = item
+            self.next_item = order
             self.next_item.previous_item = self
             self.next_item.root = self.root
 
             # Update Root Statistics in OrderList root obj
             self.root.count += 1
-            self.root.tail = self
+            self.root.tail = order
 
-            self.parent_limit.size += item.size
+            self.parent_limit.size += order.size
 
         else:
-            self.next_item.append(item)
+            self.next_item.append(order)
 
     def pop(self):
         """Pops this item from the DoublyLinkedList it belongs to.
@@ -667,9 +685,9 @@ class Order:
         return self.__repr__()
 
     def __str__(self):
-        return str(self.__repr__())
+        return self.__repr__()
 
     def __repr__(self):
-        return self.uid, self.is_bid, self.price, self.size, self.timestamp
+        return str((self.uid, self.is_bid, self.price, self.size, self.timestamp))
 
 
