@@ -479,7 +479,7 @@ class LimitLevel:
         """
         child = self.left_child
 
-        if self.parent.is_root or self.value > self.parent.value:
+        if self.parent.is_root or self.price > self.parent.price:
             self.parent.right_child = child
         else:
             self.parent.left_child = child
@@ -496,7 +496,7 @@ class LimitLevel:
         """
         child = self.right_child
 
-        if self.parent.is_root or self.value > self.parent.value:
+        if self.parent.is_root or self.price > self.parent.price:
             self.parent.right_child = child
         else:
             self.parent.left_child = child
