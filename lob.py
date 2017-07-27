@@ -666,6 +666,8 @@ class Order:
         # Update the Limit Level and root
         self.root.count -= 1
         self.parent_limit.size -= self.size
+        if self.root.count == 0:
+            self.root.parent_limit.delete(self)
 
         return self.__repr__()
 
