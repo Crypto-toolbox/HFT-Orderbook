@@ -50,6 +50,7 @@ class OrderTests(TestCase):
         lob.process(bid_order_2)
         self.assertEqual(lob.best_bid.orders.head.next_item, bid_order_2)
         self.assertEqual(lob.best_bid.orders.tail, bid_order_2)
+        self.assertEqual(len(lob.best_bid), 2)
 
     def test_removing_orders_works(self):
         lob = LimitOrderBook()
@@ -61,10 +62,29 @@ class OrderTests(TestCase):
         lob.process(bid_order_2)
         lob.process(ask_order)
         lob.process(ask_order_2)
-        self.fail("Finish me!")
 
         # Assert that removing an order from a limit level with several
         # orders resets the tail, head and previous / next items accordingly
+        removed_bid_order = Order(uid=1, is_bid=True, size=0, price=100)
+        self.assertEqual(len(lob.best_bid), 2)
+        self.assertEqual(lob.best_bid.orders.head, bid_order)
+        self.assertEqual(lob.best_bid.orders.tail, bid_order_2)
+        lob.process(removed_bid_order)
+        self.assertEqual(len(lob.best_bid), 1)
+        self.assertEqual(lob.best_bid.orders.head, bid_order_2)
+        self.assertEqual(lob.best_bid.orders.tail, bid_order_2)
+        self.assertIsNone(lob.best_bid.orders.head.next_item)
+        self.assertIsNone(lob.best_bid.orders.head.previous_item)
+        self.assertNotIn(removed_bid_order.uid, lob._orders)
+        self.assertIn(removed_bid_order.price, lob._price_levels)
 
+        # Assert that removing the last Order in a price level removes its
+        # Limit Level accordingly
+        removed_bid_order_2 = Order(uid=2, is_bid=True, size=0, price=100)
+        lob.process(removed_bid_order_2)
+        self.assertIsNone(lob.best_bid)
+
+        self.assertNotIn(removed_bid_order_2.uid, lob._orders)
+        self.assertNotIn(removed_bid_order_2.price, lob._price_levels)
 
 

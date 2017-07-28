@@ -196,11 +196,14 @@ class LimitOrderBook:
         :param order:
         :return:
         """
-        # Remove Order from orders
+        # Remove Order from self._orders
         try:
-            popped_item = self._orders[order.uid].pop()
+            popped_item = self._orders.pop(order.uid)
         except KeyError:
             return False
+
+        # Remove order from its doubly linked list
+        popped_item.pop_from_list()
 
         # Remove Limit Level from self._price_levels and tree, if no orders are
         # left within that limit level
@@ -210,12 +213,19 @@ class LimitOrderBook:
                 # Remove Limit Level from LimitLevelTree
                 if order.is_bid:
                     if popped_limit_level == self.best_bid:
-                        self.best_bid = popped_limit_level.parent
-                    self.bids.remove(popped_limit_level)
+                        if not isinstance(popped_limit_level.parent, LimitLevelTree):
+                            self.best_bid = popped_limit_level.parent
+                        else:
+                            self.best_bid = None
+
+                    popped_limit_level.remove()
                 else:
                     if popped_limit_level == self.best_ask:
-                        self.best_ask = popped_limit_level.parent
-                    self.asks.remove(popped_limit_level)
+                        if not isinstance(popped_limit_level.parent, LimitLevelTree):
+                            self.best_ask = popped_limit_level.parent
+                        else:
+                            self.best_ask = None
+                    popped_limit_level.remove()
         except KeyError:
             pass
 
@@ -245,6 +255,7 @@ class LimitOrderBook:
         else:
             # The price level already exists, hence we need to append the order
             # to that price level
+            self._orders[order.uid] = order
             self._price_levels[order.price].append(order)
 
 class LimitLevel:
@@ -367,7 +378,7 @@ class LimitLevel:
         if new_value:
             new_value.parent = self.parent
 
-    def delete(self):
+    def remove(self):
         """Delete this limit level.
 
         :return:
@@ -381,7 +392,7 @@ class LimitLevel:
             self.left_child, succ.left_child = succ.left_child, self.left_child
             self.right_child, succ.right_child = succ.right_child, self.right_child
             self.parent, succ.parent = succ.parent, self.parent
-            self.delete()
+            self.remove()
             self.balance_grandpa()
         elif self.left_child:
             # Only left child
@@ -645,7 +656,6 @@ class Order:
         :param order: Order() instance
         :return:
         """
-        print("ORDER APPEND CALLED!")
         if self.next_item is None:
             self.next_item = order
             self.next_item.previous_item = self
@@ -660,7 +670,7 @@ class Order:
         else:
             self.next_item.append(order)
 
-    def pop(self):
+    def pop_from_list(self):
         """Pops this item from the DoublyLinkedList it belongs to.
 
         :return: Order() instance values as tuple
@@ -668,19 +678,18 @@ class Order:
         if self.previous_item is None:
             # We're head
             self.root.head = self.next_item
+            if self.next_item:
+                self.next_item.previous_item = None
 
         if self.next_item is None:
             # We're tail
             self.root.tail = self.previous_item
-
-        self.previous_item.next_item, self.next_item.previous_item = \
-            self.next_item, self.previous_item
+            if self.previous_item:
+                self.previous_item.next_item = None
 
         # Update the Limit Level and root
         self.root.count -= 1
         self.parent_limit.size -= self.size
-        if self.root.count == 0:
-            self.root.parent_limit.delete(self)
 
         return self.__repr__()
 
