@@ -34,7 +34,7 @@ http://howtohft.wordpress.com/2011/02/15/how-to-build-a-fast-limit-order-book/
 Available at Archive.org's WayBackMachine:
 (https://goo.gl/KF1SRm)
 
-    
+
     "There are three main operations that a limit order book (LOB) has to
     implement: add, cancel, and execute.  The goal is to implement these
     operations in O(1) time while making it possible for the trading model to
@@ -433,18 +433,18 @@ class LimitLevel:
         """
         if self.balance_factor > 1:
             # right is heavier
-            if self.right_child.balance < 0:
+            if self.right_child.balance_factor< 0:
                 # right_child.left is heavier, RL case
                 self._rl_case()
-            elif self.right_child.balance > 0:
+            elif self.right_child.balance_factor> 0:
                 # right_child.right is heavier, RR case
                 self._rr_case()
         elif self.balance_factor < -1:
             # left is heavier
-            if self.left_child.balance < 0:
+            if self.left_child.balance_factor< 0:
                 # left_child.left is heavier, LL case
                 self._ll_case()
-            elif self.left_child.balance > 0:
+            elif self.left_child.balance_factor> 0:
                 # left_child.right is heavier, LR case
                 self._lr_case()
         else:
@@ -698,5 +698,3 @@ class Order:
 
     def __repr__(self):
         return str((self.uid, self.is_bid, self.price, self.size, self.timestamp))
-
-
