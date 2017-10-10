@@ -1,13 +1,13 @@
-struct Order
+struct Order{
     int tid;
-    bool buyOrSell;
-    int shares; // order size
+    unsigned buyOrSell;
+    int shares;
     int limit;
     int entryTime;
     int eventTime;
-    Order *nextOrder;
-    Order *prevOrder;
-    Limit *parentLimit;
+    struct Order *nextOrder;
+    struct Order *prevOrder;
+    struct Limit *parentLimit;
 };
 
 struct Limit{
@@ -15,9 +15,9 @@ struct Limit{
     float size;
     float totalVolume;
     int orderCount;
-    Limit *parent;
-    Limit *leftChild;
-    Limit *rightChild;
-    Order *headOrder;
-    Order *tailOrder;
-}
+    struct Limit *parent;
+    struct Limit *leftChild;
+    struct Limit *rightChild;
+    struct Order *headOrder;
+    struct Order *tailOrder;
+};

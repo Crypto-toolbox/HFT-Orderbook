@@ -1,3 +1,4 @@
+#include 'structs.c'
 /*
 Limit-related data operations
 */
@@ -188,7 +189,7 @@ getHeight(Limit *limit){
     int leftHeight = 0;
     int rightHeight = 0;
 
-    if(tmpChild->leftChild!=NULL)
+    if(tmpChild->leftChild!=NULL){
         leftHeight = getHeight(limit->leftChild);
     }
 
