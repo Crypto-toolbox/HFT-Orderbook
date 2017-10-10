@@ -1,4 +1,4 @@
-#include 'structs.c'
+#include "hftlob.h"
 /*
 Limit-related data operations
 */
