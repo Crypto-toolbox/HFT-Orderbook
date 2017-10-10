@@ -91,10 +91,17 @@ rotateRightLeft(Limit *limit){
 /*
 Limit-related convenience fucntions to query attributes
 about a Limit struct.
+
+These are mainly used to make important code parts more readable,
+by being more descriptive.
 */
 
 int
 limitExists(Limit *root, float value){
+    /*
+    Check if the given price level (value) exists in the
+    given limit tree (root).
+    */
     float current;
     Limit *currentLimit = root;
     while(1){
@@ -115,6 +122,9 @@ limitExists(Limit *root, float value){
 
 int
 limitIsRoot(Limit *limit){
+    /*
+    Check if the given limit is the root of the limit tree.
+    */
     if(limit->parent==NULL){
         return 1;
     }
@@ -123,8 +133,33 @@ limitIsRoot(Limit *limit){
     }
 }
 
+int
+hasGrandpa(Limit *limit){
+    /*
+    Check if there is a parent to the passed limit's parent.
+    */
+    if(limit->parent != NULL && limit->parent->parent != NULL){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+Node*
+getGrandpa(Limit *limit){
+    /*
+    Return the limit's parent parent.
+    */
+    return limit->parent->parent;
+}
+
 Node*
 getMinimumLimit(Limit *limit){
+    /*
+    Return the left-most limit struct for the given limit
+    tree / branch.
+    */
     Limit *minimum = limit;
     while(minimum->leftChild != NULL){
         minimum = minimum->leftChild;
@@ -134,6 +169,10 @@ getMinimumLimit(Limit *limit){
 
 Node*
 getMaximumLimit(Limit *limit){
+    /*
+    Return the right-most limit struct for the given limit
+    tree / branch.
+    */
     Limit *maximum = limit;
     while(maximum->rightChild != NULL){
         maximum = maximum->rightChild;
@@ -143,7 +182,9 @@ getMaximumLimit(Limit *limit){
 
 int
 getHeight(Limit *limit){
-
+    /*
+    Calculate the height of the limits under the passed limit.
+    */
     int leftHeight = 0;
     int rightHeight = 0;
 
@@ -159,6 +200,11 @@ getHeight(Limit *limit){
 
 int
 getBalanceFactor(Limit *limit){
+    /*
+    Calculate the balance factor of the passed limit, by
+    subtracting the left children's height from the right children's
+    height.
+    */
     int leftHeight = 0;
     int rightHeight = 0;
     if(limit->rightChild!=NULL){
@@ -176,24 +222,22 @@ getBalanceFactor(Limit *limit){
 Functions for Order related operations
 */
 void
-pushOrder(Limit *limit, Order *new_order)
-/* function to add an Order to a Limit struct at head*/
-{
+pushOrder(Limit *limit, Order *new_order){
+    /*
+    function to add an Order to a Limit struct at head
+    */
     new_order->parent_limit = limit;
     new_order->next = limit->headOrder;
     new_order->previous = NULL;
 
-    // Check if our head is NULL (if the list is empty)
+
     if (limit->headOrder != NULL){
-        // It isn't ! Push the new order
         limit->headOrder->previous = new_order;
     }
     else{
-        // It is! Set the new Order as tail
         limit->tail = new_order;
     };
 
-    // update head and increment counter of list
     limit->headOrder = new_order;
     limit->orderCount++;
     limit->size += new_order.size;
@@ -203,24 +247,25 @@ pushOrder(Limit *limit, Order *new_order)
 }
 
 int
-popOrder(Limit *limit)
-/* Pop function to remove tail from a Limit struct*/
-{
-    // Check if our list is empty (tail is Null)
+popOrder(Limit *limit){
+    /*
+    Pop function to remove tail from a Limit struct.
+    */
+
     if (limit->tail == NULL){
         return 0;
     }
-    // Pop the tail
+
     Order* oldTail = limit->tailOrder;
 
-    if (limit->tailOrder->previous != NULL){  // If tail isn't also head
+    if (limit->tailOrder->previous != NULL){
         limit->tailOrder = limit->tailOrder->previous;
         limit->tailOrder->next = NULL;
         limit->orderCount--;
         limit->size -= oldTail.size
         limit->totalVolume -= oldTail.size * limit->price
     }
-    else{  // if tail IS also head
+    else{
         limit->headOrder = NULL;
         limit->tailOrder = NULL
         limit->orderCount = 0;
