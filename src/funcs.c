@@ -4,29 +4,122 @@ Limit-related data operations
 */
 
 int
-treeInsertOrder(Limit *limit, Order *order){
+addNewLimit(Limit *root, Limit *limit){
     /*
-    Insert the given order into a Limit tree.
-    if the Limit doesn't exist yet, create it and append
-    the given order to it.
+    Adds a new Limit struct to the given limit tree. Asserts that the
+    limit does not yet exist.
     */
+    assert !limitExists(root, limit->limitPrice);
+
+    Limit *currentLimit = root;
+    while(currentLimit->limitPrice!=limit->limitPrice){
+        if(currentLimit->limitPrice < limit->limitPrice){
+            if(currentLimit->rightChild==NULL){
+                currentLimit->rightChild = limit;
+                limit->parent = currentLimit;
+                return 1;
+            }
+            else{
+                currentLimit = currentLimit->rightChild;
+                continnue;
+            }
+        }
+        else{
+            if(currentLimit->leftChild==NULL){
+                currentLimit->leftChild = limit;
+                limit->parent = currentLimit;
+                return 1;
+            }
+            else{
+                currentLimit = currentLimit->leftChild;
+                continue;
+            }
+        }
+    }
     return 0;
 }
 
-int
-treePopOrder(Limit *limit, Order *order){
+void
+replaceLimitInParent(Limit *limit, Limit *newLimit) {
     /*
-    Remove an order from the given Limit struct.
-
-    If the Limit struct would have no orders left, remove the Limit
-    from the tree.
+    Pops out the given limit and replaces all pointers to it from limit->parent
+    to point to the newLimit.
     */
-    return 0;
+    if(!limitIsRoot(limit)){
+        if(limit==limit->parent->leftChild){
+            limit->parent->leftChild = newLimit;
+        }
+        else{
+            limit->parent->rightChild = newLimit;
+        }
+    }
+    if(newLimit!=NULL){
+        newLimit->parent = limit->parent;
+    }
 }
+
+int removeLimit(Limit *limit){
+    /*
+    Remove the given limit from the tree it belongs to. This assumes
+    it IS part of a limit tree.
+    */
+    while(limit->leftChild!=NULL && limit->rightChild!=NULL){
+        Limit *successor = getMinimumLimit(limit);
+        limit->leftChild = successor->leftChild;
+        successor->leftChild = limit->leftChild;
+        limit->rightChild = successor->rightChild;
+        successor->rightChild = limit->rightChild;
+        limit->parent = successor->parent;
+        successor->parent = limit->parent;
+    }
+
+    if(limit->leftChild!=NULL){
+        replaceLimitInParent(limit, limit->leftChild);
+    }
+    else if(limit->rightChild!=NULL){
+        replaceLimitInParent(limit, limit->rightChild);
+    }
+    else{
+        replaceLimitInParent(limit, NULL);
+    }
+
+}
+
 
 /*
 Limit-related BST rotation functions.
 */
+
+void
+balanceBranch(Limit *limit) {
+    /*
+    Balances the nodes of the given branch of Limit structs. Assumes
+    that it has a height of at least 2.
+    */
+    int balanceFactor = getBalanceFactor(limit);
+    if(balanceFactor > 1){
+        /*Right is heavier.*/
+        balanceFactor = getBalanceFactor(limit->rightChild);
+        if(balanceFactor < 0){
+            rotateRightLeft(limit);
+        }
+        else if(balanceFactor > 0){
+            rotateRightRight(limit);
+        }
+    }
+    else if(balanceFactor < -1){
+        /*Left is heavier.*/
+        balanceFactor = getBalanceFactor(limit->leftChild);
+        if(balanceFactor < 0){
+            rotateLeftLeft(limit);
+        }
+        else if(balanceFactor > 0){
+            rotateLeftRight(limit);
+        }
+    }
+    else{/*Everything is fine, do nothing*/}
+}
+
 void
 rotateLeftLeft(Limit *limit) {
     /*
@@ -55,6 +148,14 @@ rotateLeftRight(Limit *limit) {
     Reference:
         https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
     */
+    Limit *child = limit->leftChild;
+    Limit *grandChild = limit->leftChild->rightChild;
+    child->parent = grandChild;
+    grandChild->parent = limit;
+    child->rightChild = grandChild->leftChild;
+    limit->leftChild = grandChild;
+    grandChild->leftChild = child;
+    rotateLeftLeft(limit);
     return;
 }
 
@@ -86,8 +187,17 @@ rotateRightLeft(Limit *limit){
     Reference:
         https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
     */
+    Limit *child = limit->rightChild;
+    Limit *grandChild = limit->rightChild->leftChild;
+    child->parent = grandChild;
+    grandChild->parent = limit;
+    child->leftChild = grandChild->rightChild;
+    limit->rightChild = grandChild;
+    grandChild->rightChild = child;
+    rotateRightRight(limit);
     return;
 }
+
 
 /*
 Limit-related convenience fucntions to query attributes
@@ -222,6 +332,7 @@ getBalanceFactor(Limit *limit){
 /*
 Functions for Order related operations
 */
+
 void
 pushOrder(Limit *limit, Order *new_order){
     /*
