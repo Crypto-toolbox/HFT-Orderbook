@@ -144,19 +144,18 @@ class LimitOrderBook:
 
     @property
     def top_level(self):
-        """Returns the best bid and ask available.
+        """Returns the best available bid and ask.
 
         :return:
         """
         return self.best_bid, self.best_ask
 
     def process(self, order):
-        """Process the given order.
+        """Processes the given order.
 
         If the order's size is 0, it is removed from the book.
 
-        If its size isn't zero, the order is updated if it exists within the
-        book.
+        If its size isn't zero and it exists within the book, the order is updated.
 
         If it doesn't exist, it will be added.
 
@@ -172,9 +171,9 @@ class LimitOrderBook:
                 self.add(order)
 
     def update(self, order):
-        """Update an existing order in the book.
+        """Updates an existing order in the book.
 
-        It also update's the order's related LimitLevel's size accordingly.
+        It also updates the order's related LimitLevel's size, accordingly.
 
         :param order:
         :return:
@@ -186,7 +185,7 @@ class LimitOrderBook:
     def remove(self, order):
         """Removes an order from the book.
 
-        If the Limit Level then is empty, it is also removed from the book's
+        If the Limit Level is then empty, it is also removed from the book's
         relevant tree.
 
         If the removed LimitLevel was either the top bid or ask, it is replaced
@@ -334,7 +333,7 @@ class LimitLevel:
 
     @property
     def height(self):
-        """Calculate the height of the tree up to this Node.
+        """Calculates the height of the tree up to this Node.
 
         :return: int, max height among children.
         """
@@ -379,7 +378,7 @@ class LimitLevel:
             new_value.parent = self.parent
 
     def remove(self):
-        """Delete this limit level.
+        """Deletes this limit level.
 
         :return:
         """
@@ -405,7 +404,7 @@ class LimitLevel:
             self._replace_node_in_parent(None)
 
     def balance_grandpa(self):
-        """Check if our grandparent needs rebalancing.
+        """Checks if our grandparent needs rebalancing.
 
         :return:
         """
@@ -585,7 +584,7 @@ class OrderList:
 
     This container was added because it makes deleting the LimitLevels easier.
 
-    Has no other function.
+    Has no other functionality.
 
     """
     __slots__ = ['head', 'tail', 'parent_limit', 'count']
