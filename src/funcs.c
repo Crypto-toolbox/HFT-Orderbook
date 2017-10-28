@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "hftlob.h"
 /*
 Limit-related data operations
@@ -5,11 +6,12 @@ Limit-related data operations
 
 int
 addNewLimit(Limit *root, Limit *limit){
-    /*
-    Adds a new Limit struct to the given limit tree. Asserts that the
-    limit does not yet exist.
+    /**
+    Add a new Limit struct to the given limit tree.
+
+    Asserts that the limit does not yet exist.
     */
-    assert !limitExists(root, limit->limitPrice);
+    assert(!limitExists(root, limit->limitPrice));
 
     Limit *currentLimit = root;
     while(currentLimit->limitPrice!=limit->limitPrice){
@@ -41,8 +43,8 @@ addNewLimit(Limit *root, Limit *limit){
 
 void
 replaceLimitInParent(Limit *limit, Limit *newLimit) {
-    /*
-    Pops out the given limit and replaces all pointers to it from limit->parent
+    /**
+    Pop out the given limit and replace all pointers to it from limit->parent
     to point to the newLimit.
     */
     if(!limitIsRoot(limit)){
@@ -58,11 +60,15 @@ replaceLimitInParent(Limit *limit, Limit *newLimit) {
     }
 }
 
-int removeLimit(Limit *limit){
-    /*
-    Remove the given limit from the tree it belongs to. This assumes
-    it IS part of a limit tree.
+int
+removeLimit(Limit *limit){
+    /**
+    Remove the given limit from the tree it belongs to.
+
+    This assumes it IS part of a limit tree.
     */
+    assert(hasGrandpa(limit) && !limitIsRoot(limit));
+
     while(limit->leftChild!=NULL && limit->rightChild!=NULL){
         Limit *successor = getMinimumLimit(limit);
         limit->leftChild = successor->leftChild;
@@ -92,10 +98,13 @@ Limit-related BST rotation functions.
 
 void
 balanceBranch(Limit *limit) {
-    /*
-    Balances the nodes of the given branch of Limit structs. Assumes
-    that it has a height of at least 2.
+    /**
+    Balance the nodes of the given branch of Limit structs.
+
+    Asserts that limit has a height of at least 2.
     */
+    assert(getHeight(limit) < 2);
+
     int balanceFactor = getBalanceFactor(limit);
     if(balanceFactor > 1){
         /*Right is heavier.*/
@@ -122,7 +131,7 @@ balanceBranch(Limit *limit) {
 
 void
 rotateLeftLeft(Limit *limit) {
-    /*
+    /**
     Rotate tree nodes for LL Case
     Reference:
         https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
@@ -143,7 +152,7 @@ rotateLeftLeft(Limit *limit) {
 
 void
 rotateLeftRight(Limit *limit) {
-    /*
+    /**
     Rotate tree nodes for LR Case
     Reference:
         https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
@@ -161,7 +170,7 @@ rotateLeftRight(Limit *limit) {
 
 void
 rotateRightRight(Limit *limit){
-    /*
+    /**
     Rotate tree nodes for RR Case
     Reference:
         https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
@@ -182,7 +191,7 @@ rotateRightRight(Limit *limit){
 
 void
 rotateRightLeft(Limit *limit){
-    /*
+    /**
     Rotate tree nodes for RL Case
     Reference:
         https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
@@ -209,7 +218,7 @@ by being more descriptive.
 
 int
 limitExists(Limit *root, float value){
-    /*
+    /**
     Check if the given price level (value) exists in the
     given limit tree (root).
     */
@@ -233,7 +242,7 @@ limitExists(Limit *root, float value){
 
 int
 limitIsRoot(Limit *limit){
-    /*
+    /**
     Check if the given limit is the root of the limit tree.
     */
     if(limit->parent==NULL){
@@ -246,7 +255,7 @@ limitIsRoot(Limit *limit){
 
 int
 hasGrandpa(Limit *limit){
-    /*
+    /**
     Check if there is a parent to the passed limit's parent.
     */
     if(limit->parent != NULL && limit->parent->parent != NULL){
@@ -257,17 +266,17 @@ hasGrandpa(Limit *limit){
     }
 }
 
-Node*
+Limit*
 getGrandpa(Limit *limit){
-    /*
+    /**
     Return the limit's parent parent.
     */
     return limit->parent->parent;
 }
 
-Node*
+Limit*
 getMinimumLimit(Limit *limit){
-    /*
+    /**
     Return the left-most limit struct for the given limit
     tree / branch.
     */
@@ -278,9 +287,9 @@ getMinimumLimit(Limit *limit){
     return minimum;
 }
 
-Node*
+Limit*
 getMaximumLimit(Limit *limit){
-    /*
+    /**
     Return the right-most limit struct for the given limit
     tree / branch.
     */
@@ -293,7 +302,7 @@ getMaximumLimit(Limit *limit){
 
 int
 getHeight(Limit *limit){
-    /*
+    /**
     Calculate the height of the limits under the passed limit.
     */
     int leftHeight = 0;
@@ -311,7 +320,7 @@ getHeight(Limit *limit){
 
 int
 getBalanceFactor(Limit *limit){
-    /*
+    /**
     Calculate the balance factor of the passed limit, by
     subtracting the left children's height from the right children's
     height.
@@ -335,8 +344,8 @@ Functions for Order related operations
 
 void
 pushOrder(Limit *limit, Order *new_order){
-    /*
-    function to add an Order to a Limit struct at head
+    /**
+    Add an Order to a Limit struct at head
     */
     new_order->parent_limit = limit;
     new_order->next = limit->headOrder;
@@ -360,8 +369,8 @@ pushOrder(Limit *limit, Order *new_order){
 
 int
 popOrder(Limit *limit){
-    /*
-    Pop function to remove tail from a Limit struct.
+    /**
+    Pop tail from a Limit struct orders.
     */
 
     if (limit->tail == NULL){

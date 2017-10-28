@@ -50,7 +50,6 @@ void
 rotateRightLeft(Limit *limit);
 
 
-
 /*
 Limit-related convenience functions to query attributes
 about a Limit struct.
@@ -68,13 +67,13 @@ limitIsRoot(Limit *limit);
 int
 hasGrandpa(Limit *limit);
 
-Node*
+Limit*
 getGrandpa(Limit *limit);
 
-Node*
+Limit*
 getMinimumLimit(Limit *limit);
 
-Node*
+Limit*
 getMaximumLimit(Limit *limit);
 
 int
