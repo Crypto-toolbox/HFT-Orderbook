@@ -347,6 +347,7 @@ pushOrder(Limit *limit, Order *new_order){
     /**
     Add an Order to a Limit struct at head
     */
+    assert(limit->limitPrice == new_order->limit);
     new_order->parent_limit = limit;
     new_order->next = limit->headOrder;
     new_order->previous = NULL;
@@ -372,7 +373,6 @@ popOrder(Limit *limit){
     /**
     Pop tail from a Limit struct orders.
     */
-
     if (limit->tail == NULL){
         return 0;
     }
