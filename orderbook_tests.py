@@ -23,8 +23,8 @@ class OrderTests(TestCase):
         self.assertEqual(lob.best_bid.price, 100)
         self.assertEqual(lob.best_bid.volume, 500)
 
-        # Assert That the best bid (bid_order) has no previous and no next item,
-        # since it is the only one in the book on the bid size atm.
+        # Assert that the best bid (bid_order) has no previous and no next item,
+        # since it is the only one in the book on the bid size at the moment.
         self.assertEqual(len(lob.best_bid), 1)
         self.assertEqual(len(lob.best_ask), 1)
         self.assertIsNone(bid_order.next_item)
@@ -79,7 +79,7 @@ class OrderTests(TestCase):
         self.assertIn(removed_bid_order.price, lob._price_levels)
 
         # Assert that removing the last Order in a price level removes its
-        # Limit Level accordingly
+        # limit Level accordingly
         removed_bid_order_2 = Order(uid=2, is_bid=True, size=0, price=100)
         lob.process(removed_bid_order_2)
         self.assertIsNone(lob.best_bid)

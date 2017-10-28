@@ -1,4 +1,4 @@
-#include 'funcs.c'
+#include "funcs.c"
 
 typedef struct Order{
     int tid;
@@ -10,7 +10,7 @@ typedef struct Order{
     struct Order *nextOrder;
     struct Order *prevOrder;
     struct Limit *parentLimit;
-};
+} Order;
 
 void
 pushOrder(Limit *limit, Order *new_order);
@@ -28,7 +28,7 @@ typedef struct Limit{
     struct Limit *rightChild;
     struct Order *headOrder;
     struct Order *tailOrder;
-};
+} Limit;
 
 int
 treeInsertOrder(Limit *limit, Order *order);
@@ -82,5 +82,3 @@ getHeight(Limit *limit);
 
 int
 getBalanceFactor(Limit *limit);
-
-
