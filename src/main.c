@@ -1,6 +1,7 @@
 #include <sttdio.h>
 #include "CuTest.h"
 #include "hftlob.h"
+#include "testCases.c"
 
 CuSuite* HFTLobGetSuite();
 
