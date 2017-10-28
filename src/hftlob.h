@@ -52,7 +52,7 @@ rotateRightLeft(Limit *limit);
 
 
 /*
-Limit-related convenience fucntions to query attributes
+Limit-related convenience functions to query attributes
 about a Limit struct.
 
 These are mainly used to make important code parts more readable,
