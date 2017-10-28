@@ -147,3 +147,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# JetBrain Nonesense
+*.idea
