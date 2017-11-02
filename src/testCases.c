@@ -1,15 +1,7 @@
 #include "cuTest.h"
 #include "hftlob.h"
 
-void
-TestStrToUpper(CuTest *tc){
-    /**
-     * Failing test.
-     */
-    char* actual = "Hello World";
-    char* expected = "HELLO WORLD";
-    CuAssertStrEquals(tc, expected, actual);
-}
+
 
 void
 TestOrderPushing(CuTest *tc){
@@ -223,11 +215,23 @@ TestOrderPopping(CuTest *tc){
     CuAssertIntEquals(tc, isPopped, 0);
 }
 
+void
+TestCreateRoot(CuTest *tc){
+
+    Limit *ptr_root = createRoot();
+    CuAssertPtrEquals(tc, ptr_root->parent, NULL);
+    CuAssertPtrEquals(tc, ptr_root->limitPrice, -INFINITY);
+    CuAssertPtrEquals(tc, ptr_root->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_root->rightChild, NULL);
+
+}
+
 CuSuite* HFTLobGetSuite(){
     /**
      * Prepare the test suite.
      */
     CuSuite* suite = CuSuiteNew();
-    SUITE_ADD_TEST(suite, TestStrToUpper);
+    SUITE_ADD_TEST(suite, TestOrderPushing);
+    SUITE_ADD_TEST(suite, TestOrderPopping);
     return suite;
 }
