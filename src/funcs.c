@@ -13,9 +13,6 @@ createRoot(void){
      */
     static Limit limit;
     static Limit *ptr_limit = &limit;
-    assert(limit.leftChild==NULL);
-    assert(limit.rightChild==NULL);
-    assert(limit.orderCount == 0);
     limit.parent = NULL;
     limit.limitPrice = -INFINITY;
 
