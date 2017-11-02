@@ -3,7 +3,7 @@
 typedef struct Order{
     int tid;
     unsigned buyOrSell;
-    int shares;
+    float shares;
     int limit;
     int entryTime;
     int eventTime;
