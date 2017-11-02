@@ -1,8 +1,26 @@
+#include <math.h>
 #include <assert.h>
 #include "hftlob.h"
+
 /*
 Limit-related data operations
 */
+
+Limit*
+createRoot(void){
+    /**
+     * Create a Limit structure as root and return a ptr to it.
+     */
+    static Limit limit;
+    static Limit *ptr_limit = &limit;
+    assert(limit.leftChild==NULL);
+    assert(limit.rightChild==NULL);
+    assert(limit.orderCount == 0);
+    limit.parent = NULL;
+    limit.limitPrice = -INFINITY;
+
+    return ptr_limit;
+}
 
 int
 addNewLimit(Limit *root, Limit *limit){

@@ -30,6 +30,9 @@ typedef struct Limit{
     struct Order *tailOrder;
 } Limit;
 
+Limit*
+createRoot(void);
+
 int
 addNewLimit(Limit *root, Limit *limit);
 
