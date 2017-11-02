@@ -217,13 +217,132 @@ TestOrderPopping(CuTest *tc){
 
 void
 TestCreateRoot(CuTest *tc){
-
+    /**
+     * Test the createRoot() function and assert it creates a root with limitPrice of -INFINITY, no children
+     * and no parent.
+     */
     Limit *ptr_root = createRoot();
     CuAssertPtrEquals(tc, ptr_root->parent, NULL);
     CuAssertPtrEquals(tc, ptr_root->limitPrice, -INFINITY);
     CuAssertPtrEquals(tc, ptr_root->leftChild, NULL);
     CuAssertPtrEquals(tc, ptr_root->rightChild, NULL);
+}
 
+void
+TestAddNewLimit(CuTest *tc){
+    /**
+     * Assert that the addNewLimit() function adds a Limit structure dependent on it limitPrice into a
+     * given root Limit structure.
+     */
+    Limit *ptr_root = createRoot();
+
+    Limit newLimitA;
+    Limit *ptr_newLimitA = &newLimit;
+    newLimitA.limitPrice = 100;
+
+    Limit newLimitB;
+    Limit *ptr_newLimitB = &newLimitB;
+    newLimitB.limitPrice = 50;
+
+    Limit newLimitC;
+    Limit *ptr_newLimitC = &newLimitC;
+    newLimitC.limitPrice = 200;
+
+    int statusCode = 0;
+
+    /**
+     * Add the first limit. Assert it is added as the leftChild of root. Check its references after addition to root.
+     */
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    CuTestAssertPtrEquals(tc, ptr_root->leftChild, ptr_newLimitA);
+    CuTestAssertPtrEquals(tc, ptr_root->leftChild->parent, ptr_root);
+
+    /**
+      * Add the second limit. Assert it is added as root->leftChild->leftChild. Check references to parent.
+      */
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    CuTestAssertPtrEquals(tc, ptr_root->leftChild->leftChild, ptr_newLimitB);
+    CuTestAssertPtrEquals(tc, ptr_root->leftChild->leftChild->parent, ptr_newLimitA);
+
+    /**
+      * Add the third limit. Assert it is added as root->leftChild->rightChild. Check references to parent.
+      */
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    CuTestAssertPtrEquals(tc, ptr_root->leftChild->rightChild, ptr_newLimitC);
+    CuTestAssertPtrEquals(tc, ptr_root->leftChild->rightChild->parent, ptr_newLimitA);
+    /**
+     * Add a duplicate limit and assert the returned status code is 0.
+     */
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+}
+
+void
+TestRemoveLimit(CuTest *tc){
+    /**
+     * Assert that removeLimit() successfully removes a limit, no matter where this limit is present at.
+     */
+    Limit *ptr_root = createRoot();
+
+    Limit newLimitA;
+    Limit *ptr_newLimitA = &newLimit;
+    newLimitA.limitPrice = 100;
+
+    Limit newLimitB;
+    Limit *ptr_newLimitB = &newLimitB;
+    newLimitB.limitPrice = 50;
+
+    Limit newLimitC;
+    Limit *ptr_newLimitC = &newLimitC;
+    newLimitC.limitPrice = 200;
+
+    int statCode = 0;
+
+    /**
+     * TestCase1: Removing Limits which are present as children, with no children of their own.
+     */
+
+    // Set up the test Limit BST
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    // Remove first child
+    statCode = removeLimit(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    CuTestAssertPtrEquals(ptr_root->leftChild->leftChild, NULL);
+    CuTestAssertPtrEquals(ptr_root->leftChild->rightChild, ptr_newLimitC);
+
+    // Remove second child
+    statCode = removeLimit(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    CuTestAssertPtrEquals(ptr_root->leftChild->rightChild, NULL);
+    CuTestAssertPtrEquals(ptr_root->leftChild->leftChild, NULL);
+
+    /**
+     * TestCase2: Remove a limit which has a single child and parent
+     */
+
+    // Reset the test BST
+    free(ptr_root);
+    ptr_root = createRoot();
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    CuTestFail("Finish this test!");
 }
 
 CuSuite* HFTLobGetSuite(){
