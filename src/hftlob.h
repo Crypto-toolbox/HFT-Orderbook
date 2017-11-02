@@ -31,6 +31,15 @@ typedef struct Limit{
 } Limit;
 
 int
+addNewLimit(Limit *root, Limit *limit);
+
+void
+replaceLimitInParent(Limit *limit, Limit *newLimit);
+
+int
+removeLimit(Limit *limit);
+
+int
 treeInsertOrder(Limit *limit, Order *order);
 
 int
@@ -38,7 +47,6 @@ treePopOrder(Limit *limit, Order *order);
 
 void
 rotateLeftLeft(Limit *limit);
-
 
 void
 rotateLeftRight(Limit *limit);
