@@ -343,7 +343,7 @@ Functions for Order related operations
 */
 
 void
-pushOrder(Limit *limit, Order *new_order){
+pushOrder(Limit *limit, Order *newOrder){
     /**
     Add an Order to a Limit struct at head
     */
@@ -354,16 +354,16 @@ pushOrder(Limit *limit, Order *new_order){
 
 
     if (limit->headOrder != NULL){
-        limit->headOrder->previous = new_order;
+        limit->headOrder->previous = newOrder;
     }
     else{
-        limit->tail = new_order;
+        limit->tail = newOrder;
     };
 
-    limit->headOrder = new_order;
+    limit->headOrder = newOrder;
     limit->orderCount++;
-    limit->size += new_order.size;
-    limit->totalVolume += new_order.size * limit->limitPrice
+    limit->size += newOrder->size;
+    limit->totalVolume += newOrder->size * limit->limitPrice;
 
     return;
 }
@@ -383,8 +383,8 @@ popOrder(Limit *limit){
         limit->tailOrder = limit->tailOrder->previous;
         limit->tailOrder->next = NULL;
         limit->orderCount--;
-        limit->size -= oldTail.size
-        limit->totalVolume -= oldTail.size * limit->price
+        limit->size -= oldTail->size
+        limit->totalVolume -= oldTail->size * limit->price
     }
     else{
         limit->headOrder = NULL;
