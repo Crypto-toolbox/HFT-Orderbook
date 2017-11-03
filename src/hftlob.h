@@ -91,3 +91,10 @@ getHeight(Limit *limit);
 
 int
 getBalanceFactor(Limit *limit);
+
+
+/**
+ * CuTest Functions
+ * */
+
+void RunAllTests(void);
