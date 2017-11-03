@@ -382,22 +382,24 @@ getMaximumLimit(Limit *limit){
     while(maximum->rightChild != NULL){
         maximum = maximum->rightChild;
     }
-    return minimum;
+    return maximum;
 }
 
 int
 getHeight(Limit *limit){
     /**
      * Calculate the height of the limits under the passed limit.
+     *
+     * This currently uses recursion.
      */
     int leftHeight = 0;
     int rightHeight = 0;
 
-    if(tmpChild->leftChild!=NULL){
+    if(limit->leftChild!=NULL){
         leftHeight = getHeight(limit->leftChild);
     }
 
-    if(tmpChild->rightChild!=NULL){
+    if(limit->rightChild!=NULL){
         rightHeight = getHeight(limit->rightChild);
     }
     return leftHeight+1 ? leftHeight>rightHeight: rightHeight+1;
