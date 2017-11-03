@@ -1,6 +1,11 @@
 #include "cuTest.h"
 #include "hftlob.h"
 
+/**
+ * Return a Limit struct pointer
+ * @param price float value of the limit
+ * @return
+ */
 Limit*
 createDummyLimit(float price){
     Limit newLimit;
@@ -763,7 +768,9 @@ TestRotateRL(CuTest *tc){
 }
 
 void
-TestBalanceTree(CuTest *tc){}
+TestBalanceBranch(CuTest *tc){
+    CuTestFail("Finish this test!");
+}
 
 CuSuite* HFTLobGetSuite(){
     /**
@@ -772,5 +779,21 @@ CuSuite* HFTLobGetSuite(){
     CuSuite* suite = CuSuiteNew();
     SUITE_ADD_TEST(suite, TestOrderPushing);
     SUITE_ADD_TEST(suite, TestOrderPopping);
+    SUITE_ADD_TEST(suite, TestCreateRoot);
+    SUITE_ADD_TEST(suite, TestAddNewLimit);
+    SUITE_ADD_TEST(suite, TestLimitExists);
+    SUITE_ADD_TEST(suite, TestLimitIsRoot);
+    SUITE_ADD_TEST(suite, TestHasGrandpa);
+    SUITE_ADD_TEST(suite, TestGetGrandpa);
+    SUITE_ADD_TEST(suite, TestMaximumLimit);
+    SUITE_ADD_TEST(suite, TestMinimumLimit);
+    SUITE_ADD_TEST(suite, TestGetHeight);
+    SUITE_ADD_TEST(suite, TestGetBalanceFactor);
+    SUITE_ADD_TEST(suite, TestReplaceLimitInParent);
+    SUITE_ADD_TEST(suite, TestRemoveLimit);
+    SUITE_ADD_TEST(suite, TestRotateLL);
+    SUITE_ADD_TEST(suite, TestRotateLR);
+    SUITE_ADD_TEST(suite, TestRotateRR);
+    SUITE_ADD_TEST(suite, TestRotateRL);
     return suite;
 }
