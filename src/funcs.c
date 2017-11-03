@@ -1,6 +1,7 @@
 #include <math.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "hftlob.h"
 
 /*
@@ -12,10 +13,10 @@ pushOrder(Limit *limit, Order *newOrder){
     /**
      * Add an Order to a Limit structure at head.
      */
-    assert(limit->limitPrice == new_order->limit);
-    new_order->parent_limit = limit;
-    new_order->nextOrder = limit->headOrder;
-    new_order->prevOrder= NULL;
+    assert(limit->limitPrice == newOrder->limit);
+    newOrder->parentLimit = limit;
+    newOrder->nextOrder = limit->headOrder;
+    newOrder->prevOrder= NULL;
 
 
     if (limit->headOrder != NULL){
@@ -48,8 +49,8 @@ popOrder(Limit *limit){
         limit->tailOrder = limit->tailOrder->prevOrder;
         limit->tailOrder->nextOrder = NULL;
         limit->orderCount--;
-        limit->size -= oldTail->size
-        limit->totalVolume -= oldTail->shares * limit->price
+        limit->size -= oldTail->shares;
+        limit->totalVolume -= oldTail->shares * limit->limitPrice;
     }
     else{
         limit->headOrder = NULL;
@@ -99,7 +100,7 @@ addNewLimit(Limit *root, Limit *limit){
             }
             else{
                 currentLimit = currentLimit->rightChild;
-                continnue;
+                continue;
             }
         }
         else{
@@ -218,7 +219,7 @@ rotateLeftLeft(Limit *limit) {
      *     https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
      */
     Limit *child = limit->leftChild;
-    if(limitIsRoot(limit->parent)==1 || limit->price > limit->parent->price){
+    if(limitIsRoot(limit->parent)==1 || limit->limitPrice > limit->parent->limitPrice){
         limit->parent->rightChild = child;
     }
     else{
@@ -257,7 +258,7 @@ rotateRightRight(Limit *limit){
      *     https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
      */
     Limit *child = limit->rightChild;
-    if(limitIsRoot(limit->parent)==1 || limit->price > limit->parent->price){
+    if(limitIsRoot(limit->parent)==1 || limit->limitPrice > limit->parent->limitPrice){
         limit->parent->rightChild = child;
     }
     else{
@@ -307,17 +308,17 @@ limitExists(Limit *root, float value){
     float current;
     Limit *currentLimit = root;
     while(1){
-        if(currentLimit->price == value){
+        if(currentLimit->limitPrice == value){
             return 1;
         }
         else if(currentLimit->leftChild==NULL && currentLimit->rightChild==NULL){
             return 0;
         }
-        else if(currentLimit->price < value){
+        else if(currentLimit->limitPrice < value){
             currentLimit = currentLimit->leftChild;
         }
-        else if(currentLimit->price > value){
-            currentLimit = currentLimit->rightChild
+        else if(currentLimit->limitPrice > value){
+            currentLimit = currentLimit->rightChild;
         }
     }
 }
