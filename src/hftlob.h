@@ -42,11 +42,12 @@ replaceLimitInParent(Limit *limit, Limit *newLimit);
 int
 removeLimit(Limit *limit);
 
-int
-treeInsertOrder(Limit *limit, Order *order);
+/*
+Limit-related BST rotation functions.
+*/
 
-int
-treePopOrder(Limit *limit, Order *order);
+void
+balanceBranch(Limit *limit);
 
 void
 rotateLeftLeft(Limit *limit);

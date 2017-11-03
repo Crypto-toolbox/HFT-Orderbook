@@ -4,6 +4,66 @@
 #include "hftlob.h"
 
 /*
+Functions for Order related operations
+*/
+
+void
+pushOrder(Limit *limit, Order *newOrder){
+    /**
+     * Add an Order to a Limit structure at head.
+     */
+    assert(limit->limitPrice == new_order->limit);
+    new_order->parent_limit = limit;
+    new_order->nextOrder = limit->headOrder;
+    new_order->prevOrder= NULL;
+
+
+    if (limit->headOrder != NULL){
+        limit->headOrder->prevOrder= newOrder;
+    }
+    else{
+        limit->tailOrder = newOrder;
+    };
+
+    limit->headOrder = newOrder;
+    limit->orderCount++;
+    limit->size += newOrder->shares;
+    limit->totalVolume += newOrder->shares * limit->limitPrice;
+
+    return;
+}
+
+int
+popOrder(Limit *limit){
+    /**
+     * Pop the order at the tail of a Limit structure.
+     */
+    if (limit->tailOrder == NULL){
+        return 0;
+    }
+
+    Order* oldTail = limit->tailOrder;
+
+    if (limit->tailOrder->prevOrder!= NULL){
+        limit->tailOrder = limit->tailOrder->prevOrder;
+        limit->tailOrder->nextOrder = NULL;
+        limit->orderCount--;
+        limit->size -= oldTail->size
+        limit->totalVolume -= oldTail->shares * limit->price
+    }
+    else{
+        limit->headOrder = NULL;
+        limit->tailOrder = NULL;
+        limit->orderCount = 0;
+        limit->size = 0;
+        limit->totalVolume = 0;
+    }
+
+
+    return 1;
+}
+
+/*
 Limit-related data operations
 */
 
@@ -363,62 +423,4 @@ getBalanceFactor(Limit *limit){
 }
 
 
-/*
-Functions for Order related operations
-*/
 
-void
-pushOrder(Limit *limit, Order *newOrder){
-    /**
-     * Add an Order to a Limit structure at head.
-     */
-    assert(limit->limitPrice == new_order->limit);
-    new_order->parent_limit = limit;
-    new_order->next = limit->headOrder;
-    new_order->previous = NULL;
-
-
-    if (limit->headOrder != NULL){
-        limit->headOrder->previous = newOrder;
-    }
-    else{
-        limit->tail = newOrder;
-    };
-
-    limit->headOrder = newOrder;
-    limit->orderCount++;
-    limit->size += newOrder->size;
-    limit->totalVolume += newOrder->size * limit->limitPrice;
-
-    return;
-}
-
-int
-popOrder(Limit *limit){
-    /**
-     * Pop the order at the tail of a Limit structure.
-     */
-    if (limit->tail == NULL){
-        return 0;
-    }
-
-    Order* oldTail = limit->tailOrder;
-
-    if (limit->tailOrder->previous != NULL){
-        limit->tailOrder = limit->tailOrder->previous;
-        limit->tailOrder->next = NULL;
-        limit->orderCount--;
-        limit->size -= oldTail->size
-        limit->totalVolume -= oldTail->size * limit->price
-    }
-    else{
-        limit->headOrder = NULL;
-        limit->tailOrder = NULL
-        limit->orderCount = 0;
-        limit->size = 0;
-        limit->totalVolume = 0;
-    }
-
-
-    return 1;
-}
