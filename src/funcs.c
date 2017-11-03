@@ -292,7 +292,10 @@ getGrandpa(Limit *limit){
     /**
      * Return the limit's parent parent.
      */
-    return limit->parent->parent;
+    if(hasGrandpa(limit)){
+        return limit->parent->parent;
+    }
+    return NULL;
 }
 
 Limit*
