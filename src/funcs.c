@@ -1,5 +1,6 @@
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
 #include "hftlob.h"
 
 /*
