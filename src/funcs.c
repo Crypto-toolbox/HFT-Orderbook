@@ -61,6 +61,9 @@ replaceLimitInParent(Limit *limit, Limit *newLimit) {
     /**
      * Pop out the given limit and replace all pointers to it from limit->parent
      * to point to the newLimit.
+     *
+     * Python Reference code here:
+     *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
     if(!limitIsRoot(limit)){
         if(limit==limit->parent->leftChild){
@@ -81,24 +84,22 @@ removeLimit(Limit *limit){
      * Remove the given limit from the tree it belongs to.
      *
      * This assumes it IS part of a limit tree.
+     *
+     * Python Reference code here:
+     *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
     assert(hasGrandpa(limit) && !limitIsRoot(limit));
 
+    Limit *ptr_successor = limit;
     while(limit->leftChild!=NULL && limit->rightChild!=NULL){
-        Limit *successor = getMinimumLimit(limit);
-        limit->leftChild = successor->leftChild;
-        successor->leftChild = limit->leftChild;
-        limit->rightChild = successor->rightChild;
-        successor->rightChild = limit->rightChild;
-        limit->parent = successor->parent;
-        successor->parent = limit->parent;
+        ptr_successor = getMinimumLimit(limit->rightChild);
     }
 
     if(limit->leftChild!=NULL){
-        replaceLimitInParent(limit, limit->leftChild);
+        replaceLimitInParent(limit, ptr_successor->leftChild);
     }
     else if(limit->rightChild!=NULL){
-        replaceLimitInParent(limit, limit->rightChild);
+        replaceLimitInParent(limit, ptr_successor->rightChild);
     }
     else{
         replaceLimitInParent(limit, NULL);
