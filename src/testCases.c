@@ -1,6 +1,37 @@
 #include "cuTest.h"
 #include "hftlob.h"
 
+Limit*
+createDummyLimit(float price){
+    Limit newLimit;
+    Limit *ptr_new_limit;
+    newLimit.limitPrice = price;
+    return ptr_new_limit;
+}
+
+/**
+ * Convenience function to ease setup of tests.
+ *
+ * @param dummyA ptr to Limit Struct
+ * @param dummyB ptr to Limit Struct
+ * @param dummyC ptr to Limit Struct
+ * @param dummyD ptr to Limit Struct
+ * @return ptr to Limit Struct Root
+ */
+Limit*
+createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
+    int statusCode = 0;
+    Limit *ptr_root = createRoot();
+    statusCode = addNewLimit(ptr_root, dummyA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, dummyB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, dummyC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, dummyD);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    return ptr_root;
+}
 
 
 void
@@ -284,37 +315,255 @@ TestAddNewLimit(CuTest *tc){
 }
 
 void
+TestLimitExists(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    /**
+     * Assert that limitExists returns correct integer values.
+     */
+
+
+    int statusCode = 0;
+
+    statusCode = limitExists(ptr_root, 100);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = limitExists(ptr_root, 200);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = limitExists(ptr_root, 50);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = limitExists(ptr_root, 500);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+}
+
+void
+TestLimitIsRoot(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    /**
+     * Assert that limitIsRoot() returns the correct values.
+     */
+
+    int statusCode = 0;
+
+    statusCode = limitIsRoot(ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+    statusCode = limitIsRoot(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+    statusCode = limitIsRoot(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+    statusCode = limitIsRoot(ptr_root);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+}
+
+void
+TestHasGrandpa(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+
+    /**
+     * Assert that hasGrandpa() returns correct values.
+     */
+
+    int statusCode = 0;
+
+    statusCode = hasGrandpa(ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+    statusCode = hasGrandpa(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = hasGrandpa(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = hasGrandpa(ptr_root);
+    CuTestAssertIntEquals(tc, statusCode, 0);
+}
+
+void
+TestGetGrandpa(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+
+    /**
+      * Assert that getGrandpa() returns a pointer if a grandpa exists and NULL otherwise.
+      */
+
+    int statusCode = 0;
+
+    statusCode = getGrandpa(ptr_newLimitA);
+    CuTestAssertPtrEquals(tc, statusCode, NULL);
+    statusCode = getGrandpa(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, ptr_root);
+    statusCode = getGrandpa(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, ptr_root;
+    statusCode = getGrandpa(ptr_root);
+    CuTestAssertIntEquals(tc, statusCode, NULL);
+}
+
+void
+TestGetMaximumLimit(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    /**
+     * Assert getMaximumLimit() always returns the most-right limit present under a given limit.
+     * If there is no limit under it, it returns the given limit instead.
+     */
+
+    Limit *ptr_retValue;
+
+    ptr_retValue = getMaximumLimit(ptr_newLimitA);
+    CuTestAssertPtrEquals(tc,ptr_retValue, ptr_newLimitC);
+    ptr_retValue = getMaximumLimit(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, ptr_retValue, ptr_newLimitB);
+    ptr_retValue = getMaximumLimit(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, ptr_retValue, ptr_newLimitC);
+    ptr_retValue = getMaximumLimit(ptr_root);
+    CuTestAssertPtrEquals(tc,ptr_retValue, ptr_newLimitC);
+}
+
+void
+TestGetMinimumLimit(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    /**
+     * Assert getMinimumLimit() always returns the most-right limit present under a given limit.
+     * If there is no limit under it, it returns the given limit instead.
+     */
+
+    Limit *ptr_retValue;
+
+    ptr_retValue = getMinimumLimit(ptr_newLimitA);
+    CuTestAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
+    ptr_retValue = getMinimumLimit(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, ptr_retValue, ptr_newLimitB);
+    ptr_retValue = getMinimumLimit(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, ptr_retValue, ptr_newLimitC);
+    ptr_retValue = getMinimumLimit(ptr_root);
+    CuTestAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
+}
+
+void
+TestGetHeight(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+
+    /**
+     * Assert that the height is calculated correctly.
+     */
+
+    int height = 0;
+
+    height = getHeight(ptr_root);
+    CuTestAssertIntEquals(tc, height, 3);
+    height = getHeight(ptr_newLimitA);
+    CuTestAssertIntEquals(tc, height, 2);
+    height = getHeight(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, height, 1);
+    height = getHeight(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, height, 0);
+    height = getHeight(ptr_newLimitD);
+    CuTestAssertIntEquals(tc, height, 0);
+}
+
+void
+TestGetBalanceFactor(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+    
+    /**
+     * Assert that the balance factor is correctly calculated by substracting the leftChild's height FROM the 
+     * rightChild's height.
+     */
+    
+    int balanceFactor = 0;
+
+    balanceFactor = getBalanceFactor(ptr_root);
+    CuTestAssertIntEquals(tc, balanceFactor, 3);
+    balanceFactor = getBalanceFactor(ptr_newLimitA);
+    CuTestAssertIntEquals(tc, balanceFactor, -1);
+    balanceFactor = getBalanceFactor(ptr_newLimitB);
+    CuTestAssertIntEquals(tc, balanceFactor, 1);
+    balanceFactor = getBalanceFactor(ptr_newLimitC);
+    CuTestAssertIntEquals(tc, balanceFactor, 0);
+    balanceFactor = getBalanceFactor(ptr_newLimitD);
+    CuTestAssertIntEquals(tc, balanceFactor, 0);
+}
+
+void
+TestReplaceLimitInParent(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+    /**
+     * Assert that replaceLimitInParent() removes the limit from the tree and updates all relevant references.
+     */
+
+    replaceLimitInParent(ptr_newLimitA, ptr_newLimitB);
+
+    CuTestFail("Finish this test!");
+
+}
+
+void
 TestRemoveLimit(CuTest *tc){
+    // Setup test BST for test.
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
     /**
      * Assert that removeLimit() successfully removes a limit, no matter where this limit is present at.
      */
-    Limit *ptr_root = createRoot();
 
-    Limit newLimitA;
-    Limit *ptr_newLimitA = &newLimit;
-    newLimitA.limitPrice = 100;
 
-    Limit newLimitB;
-    Limit *ptr_newLimitB = &newLimitB;
-    newLimitB.limitPrice = 50;
-
-    Limit newLimitC;
-    Limit *ptr_newLimitC = &newLimitC;
-    newLimitC.limitPrice = 200;
-
-    int statCode = 0;
 
     /**
      * TestCase1: Removing Limits which are present as children, with no children of their own.
      */
 
-    // Set up the test Limit BST
-    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
-    CuTestAssertIntEquals(tc, statusCode, 1);
-    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
-    CuTestAssertIntEquals(tc, statusCode, 1);
-    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuTestAssertIntEquals(tc, statusCode, 1);
+    int statusCode = 0;
+
 
     // Remove first child
     statCode = removeLimit(ptr_newLimitB);
@@ -334,13 +583,17 @@ TestRemoveLimit(CuTest *tc){
 
     // Reset the test BST
     free(ptr_root);
-    ptr_root = createRoot();
-    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    statusCode = removeLimit(ptr_newLimitA);
     CuTestAssertIntEquals(tc, statusCode, 1);
-    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
-    CuTestAssertIntEquals(tc, statusCode, 1);
-    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuTestAssertIntEquals(tc, statusCode, 1);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->parent->leftChild, ptr_newLimitB);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->rightChild, ptr_newLimitC);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
+
+
 
     CuTestFail("Finish this test!");
 }
