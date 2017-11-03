@@ -1,4 +1,4 @@
-#include <sttdio.h>
+#include <stdio.h>
 #include "CuTest.h"
 #include "hftlob.h"
 #include "testCases.c"
