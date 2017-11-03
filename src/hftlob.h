@@ -1,5 +1,3 @@
-#include "funcs.c"
-
 typedef struct Order{
     int tid;
     unsigned buyOrSell;
@@ -12,12 +10,6 @@ typedef struct Order{
     struct Limit *parentLimit;
 } Order;
 
-void
-pushOrder(Limit *limit, Order *new_order);
-
-int
-popOrder(Limit *limit);
-
 typedef struct Limit{
     float limitPrice;
     float size;
@@ -29,6 +21,12 @@ typedef struct Limit{
     struct Order *headOrder;
     struct Order *tailOrder;
 } Limit;
+
+void
+pushOrder(Limit *limit, Order *new_order);
+
+int
+popOrder(Limit *limit);
 
 Limit*
 createRoot(void);
