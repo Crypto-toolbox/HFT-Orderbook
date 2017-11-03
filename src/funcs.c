@@ -88,7 +88,9 @@ removeLimit(Limit *limit){
      * Python Reference code here:
      *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
-    assert(hasGrandpa(limit) && !limitIsRoot(limit));
+    if(!hasGrandpa(limit) && limitIsRoot(limit)){
+        return 0;
+    }
 
     Limit *ptr_successor = limit;
     while(limit->leftChild!=NULL && limit->rightChild!=NULL){
@@ -105,6 +107,8 @@ removeLimit(Limit *limit){
         replaceLimitInParent(limit, NULL);
     }
 
+    free(limit);
+    return 1;
 }
 
 
