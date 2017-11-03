@@ -34,6 +34,10 @@ createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
 }
 
 
+/**
+ * Test Functions related to adding and removing orders to/from a limit.
+ */
+
 void
 TestOrderPushing(CuTest *tc){
     Limit limit;
@@ -246,6 +250,10 @@ TestOrderPopping(CuTest *tc){
     CuAssertIntEquals(tc, isPopped, 0);
 }
 
+/**
+ *
+ */
+
 void
 TestCreateRoot(CuTest *tc){
     /**
@@ -313,6 +321,10 @@ TestAddNewLimit(CuTest *tc){
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
     CuTestAssertIntEquals(tc, statusCode, 0);
 }
+
+/**
+ * Test the convenience functions for their correctness.
+ */
 
 void
 TestLimitExists(CuTest *tc){
@@ -525,6 +537,10 @@ TestGetBalanceFactor(CuTest *tc){
     CuTestAssertIntEquals(tc, balanceFactor, 0);
 }
 
+/**
+ * Test the tree operation functions.
+ */
+
 void
 TestReplaceLimitInParent(CuTest *tc){
     // Setup test BST for test.
@@ -597,6 +613,157 @@ TestRemoveLimit(CuTest *tc){
 
     CuTestFail("Finish this test!");
 }
+
+void
+TestRotateLL(CuTest *tc){
+    // Setup the BST Tree
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(50.0);
+    Limit *ptr_newLimitC = createDummyLimit(40.0);
+    Limit *ptr_root = createRoot();
+
+    int statusCode = 0;
+
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    /**
+     * Assert that all references are correctly updated and the pointers are correct.
+     */
+
+    rotateLeftLeft(ptr_newLimitA);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->rightChild, ptr_newLimitA);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitC);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitB);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
+}
+
+void
+TestRotateLR(CuTest *tc){
+    // Setup the BST Tree
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(50.0);
+    Limit *ptr_newLimitC = createDummyLimit(60.0);
+    Limit *ptr_root = createRoot();
+
+    int statusCode = 0;
+
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    /**
+     * Assert that all references are correctly updated and the pointers are correct.
+     */
+
+    rotateLeftRight(ptr_newLimitA);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitA);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitC);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitC);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+}
+
+void
+TestRotateRR(CuTest *tc){
+    // Setup the BST Tree
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(300.0);
+    Limit *ptr_root = createRoot();
+
+    int statusCode = 0;
+
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    rotateLeftLeft(ptr_newLimitA);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitA);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->rightChild, ptr_newLimitC);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitB);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
+}
+
+void
+TestRotateRL(CuTest *tc){
+    // Setup the BST Tree
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(150.0);
+    Limit *ptr_root = createRoot();
+
+    int statusCode = 0;
+
+    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
+    CuTestAssertIntEquals(tc, statusCode, 1);
+
+    /**
+     * Assert that all references are correctly updated and the pointers are correct.
+     */
+
+    rotateLeftRight(ptr_newLimitA);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitA);
+    CuTestAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitC);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitC);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
+    CuTestAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
+
+    CuTestAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+}
+
+void
+TestBalanceTree(CuTest *tc){}
 
 CuSuite* HFTLobGetSuite(){
     /**
