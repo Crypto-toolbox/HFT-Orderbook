@@ -33,10 +33,10 @@ typedef struct Queue{
 } Queue;
 
 void
-push(Queue *q, Limit *limit);
+pushToQueue(Queue *q, Limit *limit);
 
 Limit*
-pop(Queue *q);
+popFromQueue(Queue *q);
 
 int
 queueIsEmpty(Queue *q)

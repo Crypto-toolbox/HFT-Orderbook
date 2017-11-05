@@ -14,21 +14,8 @@ typedef struct Queue{
     QItem *tail;
 } Queue;
 
-Limit*
-pop(Queue *q){
-    if(q->tail == NULL){
-        return NULL;
-    }
-    Limit *poppedLimit = q->tail->limit;
-    q->tail = q->tail->previous;
-    if(q->tail==NULL){
-        q->head = NULL;
-    }
-    return poppedLimit;
-}
-
 void
-push(Queue *q, Limit *limit){
+pushToQueue(Queue *q, Limit *limit){
     QItem newItem;
     newItem.limit = limit;
     QItem *ptr_newItem = &newItem;
@@ -39,6 +26,19 @@ push(Queue *q, Limit *limit){
     q->head = ptr_newItem;
     ptr_newItem->previous = q->tail;
     q->tail = ptr_newItem;
+}
+
+Limit*
+popFromQueue(Queue *q){
+    if(q->tail == NULL){
+        return NULL;
+    }
+    Limit *poppedLimit = q->tail->limit;
+    q->tail = q->tail->previous;
+    if(q->tail==NULL){
+        q->head = NULL;
+    }
+    return poppedLimit;
 }
 
 int
