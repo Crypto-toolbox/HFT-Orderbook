@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "CuTest.h"
 #include "hftlob.h"
 
 int main(int argc, char* argv[]){
