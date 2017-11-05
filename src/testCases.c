@@ -282,7 +282,7 @@ TestOrderPopping(CuTest *tc){
 }
 
 /**
- *
+ * Test Root creation and tree population funcs.
  */
 
 void
