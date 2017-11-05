@@ -1,3 +1,7 @@
+/**
+ * CUSTOM STRUCTS
+ */
+
 typedef struct Order{
     int tid;
     unsigned buyOrSell;
@@ -32,6 +36,10 @@ typedef struct Queue{
     QItem *tail;
 } Queue;
 
+/**
+ * QUEUE FUNCTIONS
+ */
+
 void
 pushToQueue(Queue *q, Limit *limit);
 
@@ -41,11 +49,19 @@ popFromQueue(Queue *q);
 int
 queueIsEmpty(Queue *q)
 
+/**
+ * ORDER FUNCTIONS
+ */
+
 int
 pushOrder(Limit *limit, Order *new_order);
 
 int
 popOrder(Limit *limit);
+
+/**
+ * BINARY SEARCH TREE FUNCTIONS
+ */
 
 Limit*
 createRoot(void);
@@ -59,9 +75,9 @@ replaceLimitInParent(Limit *limit, Limit *newLimit);
 int
 removeLimit(Limit *limit);
 
-/*
-Limit-related BST rotation functions.
-*/
+/**
+ * BINARY SEARCH TREE BALANCING FUNCTIONS
+ */
 
 void
 balanceBranch(Limit *limit);
@@ -79,13 +95,9 @@ void
 rotateRightLeft(Limit *limit);
 
 
-/*
-Limit-related convenience functions to query attributes
-about a Limit struct.
-
-These are mainly used to make important code parts more readable,
-by being more descriptive.
-*/
+/**
+ * CONVENIENCE FUNCTIONS FOR BST OPERATIONS
+ */
 
 int
 limitExists(Limit *root, float value);
