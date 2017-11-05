@@ -12,8 +12,6 @@
 
 /**
  * Return a Limit struct pointer
- * @param price float value of the limit
- * @return
  */
 Limit*
 createDummyLimit(float price){
@@ -25,12 +23,6 @@ createDummyLimit(float price){
 
 /**
  * Convenience function to ease setup of tests.
- *
- * @param dummyA ptr to Limit Struct
- * @param dummyB ptr to Limit Struct
- * @param dummyC ptr to Limit Struct
- * @param dummyD ptr to Limit Struct
- * @return ptr to Limit Struct Root
  */
 Limit*
 createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
