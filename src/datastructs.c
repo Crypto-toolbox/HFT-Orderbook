@@ -1,3 +1,6 @@
+/**
+ * Contains complimentary data structures needed to run the LOB.
+ */
 #include <stdlib.h>
 #include "hftlob.h"
 

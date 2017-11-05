@@ -1,3 +1,6 @@
+/**
+ * Contains all functions required to run a HFT limit order book.
+ */
 #include <math.h>
 #include <assert.h>
 #include <stdio.h>
