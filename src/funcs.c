@@ -391,29 +391,8 @@ getMaximumLimit(Limit *limit){
 int
 getHeight(Limit *limit){
     /**
-     * Calculate the height of the limits under the passed limit.
-     *
-     * This currently uses recursion.
+     * Calculate the height of the limits under the passed limit non-recursively.
      */
-    if(!limit){
-        return 0;
-    }
-
-    int leftHeight = 0;
-    int rightHeight = 0;
-
-    if(limit->leftChild!=NULL){
-        leftHeight = getHeight(limit->leftChild);
-    }
-
-    if(limit->rightChild!=NULL){
-        rightHeight = getHeight(limit->rightChild);
-    }
-    return leftHeight+1 ? leftHeight>rightHeight: rightHeight+1;
-}
-
-int
-getHeightNonRecursive(Limit *limit){
     Queue queue;
     int height = 0;
     Limit *ptr_current;
