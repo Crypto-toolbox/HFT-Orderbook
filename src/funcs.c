@@ -393,6 +393,10 @@ getHeight(Limit *limit){
      *
      * This currently uses recursion.
      */
+    if(!limit){
+        return 0;
+    }
+
     int leftHeight = 0;
     int rightHeight = 0;
 
@@ -404,6 +408,34 @@ getHeight(Limit *limit){
         rightHeight = getHeight(limit->rightChild);
     }
     return leftHeight+1 ? leftHeight>rightHeight: rightHeight+1;
+}
+
+int
+getHeightNonRecursive(Limit *limit){
+    Queue queue;
+    int height = 0;
+    Limit *ptr_current;
+    push(queue, limit);
+    push(queue, NULL);
+    while(!queueIsEmpty){
+        ptr_current = pop(queue);
+        if(ptr_current == NULL){
+            if(!queueIsEmpty(queue)){
+                push(queue, NULL);
+            }
+            height++;
+        }
+        else{
+            if(ptr_current->leftChild!=NULL){
+                push(queue, ptr_current->leftChild);
+            }
+            if(ptr_current->rightChild!=NULL){
+                push(queue, ptr_current->rightChild);
+            }
+        }
+    }
+    free(ptr_current);
+    return height;
 }
 
 int

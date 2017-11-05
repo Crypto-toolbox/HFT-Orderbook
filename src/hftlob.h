@@ -22,6 +22,25 @@ typedef struct Limit{
     struct Order *tailOrder;
 } Limit;
 
+typedef struct QItem{
+    Limit *limit;
+    QItem *previous;
+} QItem;
+
+typedef struct Queue{
+    QItem *head;
+    QItem *tail;
+} Queue;
+
+void
+push(Queue *q, Limit *limit);
+
+Limit*
+pop(Queue *q);
+
+int
+queueIsEmpty(Queue *q)
+
 void
 pushOrder(Limit *limit, Order *new_order);
 
