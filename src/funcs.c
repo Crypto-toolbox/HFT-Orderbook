@@ -8,12 +8,14 @@
 Functions for Order related operations
 */
 
-void
+int
 pushOrder(Limit *limit, Order *newOrder){
     /**
      * Add an Order to a Limit structure at head.
      */
-    assert(limit->limitPrice == newOrder->limit);
+    if(limit->limitPrice == newOrder->limit){
+        return 0;
+    }
     newOrder->parentLimit = limit;
     newOrder->nextOrder = limit->headOrder;
     newOrder->prevOrder= NULL;
@@ -31,7 +33,7 @@ pushOrder(Limit *limit, Order *newOrder){
     limit->size += newOrder->shares;
     limit->totalVolume += newOrder->shares * limit->limitPrice;
 
-    return;
+    return 1;
 }
 
 int

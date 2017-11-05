@@ -41,7 +41,7 @@ pop(Queue *q);
 int
 queueIsEmpty(Queue *q)
 
-void
+int
 pushOrder(Limit *limit, Order *new_order);
 
 int
