@@ -74,17 +74,15 @@ Limit-related data operations
 */
 
 Limit*
-createRoot(Limit *limit){
+createRoot(void){
     /**
      * Create a Limit structure as root and return a ptr to it.
      */
-    static Limit limit;
-    static Limit *ptr_limit;
-    ptr_limit = malloc(sizeof(Limit));
-    ptr_limit = &limit;
-    limit.parent = NULL;
-    limit.limitPrice = -INFINITY;
-
+    Limit *ptr_limit = malloc(sizeof(Limit));
+    ptr_limit->parent = NULL;
+    ptr_limit->leftChild = NULL;
+    ptr_limit->rightChild = NULL;
+    ptr_limit->limitPrice = -INFINITY;
     return ptr_limit;
 }
 
@@ -94,8 +92,14 @@ addNewLimit(Limit *root, Limit *limit){
      * Add a new Limit struct to the given limit tree.
      *
      * Asserts that the limit does not yet exist.
+     * Also sets left and right child to NULL.
      */
-    assert(!limitExists(root, limit->limitPrice));
+    if(limitExists(root, limit) == 1){
+        return 0;
+    }
+    limit->leftChild = NULL;
+    limit->rightChild = NULL;
+
 
     Limit *currentLimit = root;
     while(currentLimit->limitPrice!=limit->limitPrice){
@@ -307,29 +311,33 @@ by being more descriptive.
 */
 
 int
-limitExists(Limit *root, float value){
+limitExists(Limit *root, Limit *limit){
     /**
      * Check if the given price level (value) exists in the
      * given limit tree (root).
      */
-    Limit *currentLimit = root;
     if(root->parent == NULL && root->rightChild == NULL){
         return 0;
     }
-    while(1){
-        if(currentLimit->limitPrice == value){
-            return 1;
-        }
-        else if(currentLimit->leftChild==NULL && currentLimit->rightChild==NULL){
+    Limit *currentLimit = root;
+    while(currentLimit->limitPrice != limit->limitPrice){
+        if(currentLimit->leftChild == NULL && currentLimit->rightChild==NULL){
             return 0;
         }
-        else if(currentLimit->limitPrice < value){
-            currentLimit = currentLimit->leftChild;
-        }
-        else if(currentLimit->limitPrice > value){
-            currentLimit = currentLimit->rightChild;
+        else {
+            if(currentLimit->rightChild != NULL && currentLimit->limitPrice < limit->limitPrice){
+                currentLimit = currentLimit->rightChild;
+            }
+            else if(currentLimit->leftChild != NULL && currentLimit->limitPrice > limit->limitPrice){
+                currentLimit = currentLimit->leftChild;
+            }
+            else{
+                return -1;
+            }
+            continue;
         }
     }
+    return 1;
 }
 
 int
