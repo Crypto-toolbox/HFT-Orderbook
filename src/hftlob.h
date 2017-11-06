@@ -7,7 +7,7 @@
 typedef struct Order{
     int tid;
     unsigned buyOrSell;
-    float shares;
+    double shares;
     int limit;
     int entryTime;
     int eventTime;
@@ -17,9 +17,9 @@ typedef struct Order{
 } Order;
 
 typedef struct Limit{
-    float limitPrice;
-    float size;
-    float totalVolume;
+    double limitPrice;
+    double size;
+    double totalVolume;
     int orderCount;
     struct Limit *parent;
     struct Limit *leftChild;
@@ -102,7 +102,7 @@ rotateRightLeft(Limit *limit);
  */
 
 int
-limitExists(Limit *root, float value);
+limitExists(Limit *root, Limit *limit);
 
 int
 limitIsRoot(Limit *limit);
