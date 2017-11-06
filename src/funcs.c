@@ -102,29 +102,30 @@ addNewLimit(Limit *root, Limit *limit){
 
 
     Limit *currentLimit = root;
-    while(currentLimit->limitPrice!=limit->limitPrice){
+    Limit *child;
+    while(1){
         if(currentLimit->limitPrice < limit->limitPrice){
-            if(currentLimit->rightChild==NULL){
+            if(currentLimit->rightChild == NULL){
                 currentLimit->rightChild = limit;
                 limit->parent = currentLimit;
                 return 1;
             }
             else{
                 currentLimit = currentLimit->rightChild;
-                continue;
             }
         }
-        else{
-            if(currentLimit->leftChild==NULL){
+        else if (currentLimit->limitPrice < limit->limitPrice){
+            if(currentLimit->leftChild == NULL){
                 currentLimit->leftChild = limit;
                 limit->parent = currentLimit;
                 return 1;
             }
             else{
                 currentLimit = currentLimit->leftChild;
-                continue;
             }
         }
+        continue
+
     }
     return 0;
 }
