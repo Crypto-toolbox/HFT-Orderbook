@@ -15,10 +15,9 @@
  */
 Limit*
 createDummyLimit(float price){
-    Limit newLimit;
-    Limit *ptr_new_limit;
-    newLimit.limitPrice = price;
-    return ptr_new_limit;
+    Limit *ptr_newLimit = malloc(sizeof(Limit));
+    ptr_newLimit->limitPrice = price;
+    return (ptr_newLimit);
 }
 
 /**
@@ -27,7 +26,8 @@ createDummyLimit(float price){
 Limit*
 createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
     int statusCode = 0;
-    static Limit *ptr_root = createRoot();
+    Limit *ptr_root = malloc(sizeof(Limit));
+    ptr_root = createRoot();
     statusCode = addNewLimit(ptr_root, dummyA);
     assert(statusCode == 1);
     statusCode = addNewLimit(ptr_root, dummyB);
@@ -36,7 +36,7 @@ createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
     assert(statusCode == 1);
     statusCode = addNewLimit(ptr_root, dummyD);
     assert(statusCode == 1);
-    return ptr_root;
+    return (ptr_root);
 }
 
 
@@ -361,18 +361,23 @@ TestLimitExists(CuTest *tc){
     /**
      * Assert that limitExists returns correct integer values.
      */
-
+    Limit limit;
+    limit.limitPrice = 100;
+    Limit *ptr_limit = &limit;
 
     int statusCode = 0;
 
-    statusCode = limitExists(ptr_root, 100);
+    statusCode = limitExists(ptr_root, ptr_limit);
     CuAssertIntEquals(tc, statusCode, 1);
-    statusCode = limitExists(ptr_root, 200);
+    limit.limitPrice = 100;
+    statusCode = limitExists(ptr_root, ptr_limit);
     CuAssertIntEquals(tc, statusCode, 1);
-    statusCode = limitExists(ptr_root, 50);
+    limit.limitPrice = 200;
+    statusCode = limitExists(ptr_root, ptr_limit);
     CuAssertIntEquals(tc, statusCode, 1);
-    statusCode = limitExists(ptr_root, 500);
-    CuAssertIntEquals(tc, statusCode, 0);
+    limit.limitPrice = 50;
+    statusCode = limitExists(ptr_root, ptr_limit);
+    CuAssertIntEquals(tc, statusCode, 45);
 }
 
 void
