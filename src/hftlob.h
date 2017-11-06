@@ -1,3 +1,5 @@
+#ifndef HFTLOB_H_
+#define HFTLOB_H_
 /**
  * CUSTOM STRUCTS
  */
@@ -28,7 +30,7 @@ typedef struct Limit{
 
 typedef struct QItem{
     Limit *limit;
-    QItem *previous;
+    struct QItem *previous;
 } QItem;
 
 typedef struct Queue{
@@ -47,7 +49,7 @@ Limit*
 popFromQueue(Queue *q);
 
 int
-queueIsEmpty(Queue *q)
+queueIsEmpty(Queue *q);
 
 /**
  * ORDER FUNCTIONS
@@ -129,3 +131,5 @@ getBalanceFactor(Limit *limit);
  * */
 
 void RunAllTests(void);
+
+#endif

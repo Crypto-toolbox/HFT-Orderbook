@@ -4,16 +4,6 @@
 #include <stdlib.h>
 #include "hftlob.h"
 
-typedef struct QItem{
-    Limit *limit;
-    QItem *previous;
-} QItem;
-
-typedef struct Queue{
-    QItem *head;
-    QItem *tail;
-} Queue;
-
 void
 pushToQueue(Queue *q, Limit *limit){
     QItem newItem;

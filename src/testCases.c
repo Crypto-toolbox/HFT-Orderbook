@@ -27,7 +27,7 @@ createDummyLimit(float price){
 Limit*
 createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
     int statusCode = 0;
-    Limit *ptr_root = createRoot();
+    static Limit *ptr_root = createRoot();
     statusCode = addNewLimit(ptr_root, dummyA);
     assert(statusCode == 1);
     statusCode = addNewLimit(ptr_root, dummyB);
@@ -68,7 +68,7 @@ TestOrderPushing(CuTest *tc){
     int returnCode = 0;
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderA);
-    CuAssertIntEquals(returnCode, 1):
+    CuAssertIntEquals(tc, returnCode, 1);
 
     // Assert References have been correctly updated
     CuAssertPtrNotNull(tc, ptr_limit->headOrder);
@@ -98,7 +98,7 @@ TestOrderPushing(CuTest *tc){
     newOrderB.tid = 1235;
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderB);
-    CuAssertIntEquals(returnCode, 1):
+    CuAssertIntEquals(tc, returnCode, 1);
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderB);
@@ -129,7 +129,7 @@ TestOrderPushing(CuTest *tc){
     newOrderC.tid = 1236;
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderC);
-    CuAssertIntEquals(returnCode, 1):
+    CuAssertIntEquals(tc, returnCode, 1);
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderC);
@@ -161,8 +161,8 @@ TestOrderPushing(CuTest *tc){
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
     newOrderC.tid = 1236;
-    returnCode = pushOrder(ptr_limit, ptr_newLimitD);
-    CuAssertIntEquals(returnCode, 0);
+    returnCode = pushOrder(ptr_limit, ptr_newOrderD);
+    CuAssertIntEquals(tc, returnCode, 0);
 }
 
 void

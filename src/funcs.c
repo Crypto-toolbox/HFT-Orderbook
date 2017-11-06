@@ -34,7 +34,7 @@ pushOrder(Limit *limit, Order *newOrder){
     limit->headOrder = newOrder;
     limit->orderCount++;
     limit->size += newOrder->shares;
-    limit->totalVolume += newOrder->shares * limit->limitPrice;
+    limit->totalVolume += (newOrder->shares * limit->limitPrice);
 
     return 1;
 }
@@ -74,12 +74,14 @@ Limit-related data operations
 */
 
 Limit*
-createRoot(void){
+createRoot(Limit *limit){
     /**
      * Create a Limit structure as root and return a ptr to it.
      */
     static Limit limit;
-    static Limit *ptr_limit = &limit;
+    static Limit *ptr_limit;
+    ptr_limit = malloc(sizeof(Limit));
+    ptr_limit = &limit;
     limit.parent = NULL;
     limit.limitPrice = -INFINITY;
 
@@ -310,8 +312,10 @@ limitExists(Limit *root, float value){
      * Check if the given price level (value) exists in the
      * given limit tree (root).
      */
-    float current;
     Limit *currentLimit = root;
+    if(root->parent == NULL && root->rightChild == NULL){
+        return 0;
+    }
     while(1){
         if(currentLimit->limitPrice == value){
             return 1;
@@ -397,24 +401,25 @@ getHeight(Limit *limit){
      * Calculate the height of the limits under the passed limit non-recursively.
      */
     Queue queue;
+    Queue *ptr_queue = &queue;
     int height = 0;
     Limit *ptr_current;
-    push(queue, limit);
-    push(queue, NULL);
-    while(!queueIsEmpty){
-        ptr_current = pop(queue);
+    pushToQueue(ptr_queue, limit);
+    pushToQueue(ptr_queue, NULL);
+    while(!queueIsEmpty(ptr_queue)){
+        ptr_current = popFromQueue(ptr_queue);
         if(ptr_current == NULL){
-            if(!queueIsEmpty(queue)){
-                push(queue, NULL);
+            if(!queueIsEmpty(ptr_queue)){
+                pushToQueue(ptr_queue, NULL);
             }
             height++;
         }
         else{
             if(ptr_current->leftChild!=NULL){
-                push(queue, ptr_current->leftChild);
+                pushToQueue(ptr_queue, ptr_current->leftChild);
             }
             if(ptr_current->rightChild!=NULL){
-                push(queue, ptr_current->rightChild);
+                pushToQueue(ptr_queue, ptr_current->rightChild);
             }
         }
     }
