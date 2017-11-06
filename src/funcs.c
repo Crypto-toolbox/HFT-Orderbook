@@ -124,7 +124,7 @@ addNewLimit(Limit *root, Limit *limit){
                 currentLimit = currentLimit->leftChild;
             }
         }
-        continue
+        continue;
 
     }
     return 0;
