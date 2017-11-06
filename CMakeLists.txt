@@ -16,3 +16,5 @@ set(SOURCE_FILES
         README.md)
 
 add_executable(HFT_Orderbook ${SOURCE_FILES})
+
+set(CMAKE_BUILD_TYPE Debug)
