@@ -1,3 +1,6 @@
+/**
+ * Contains all functions required to run a HFT limit order book.
+ */
 #include <math.h>
 #include <assert.h>
 #include <stdio.h>
@@ -8,12 +11,14 @@
 Functions for Order related operations
 */
 
-void
+int
 pushOrder(Limit *limit, Order *newOrder){
     /**
      * Add an Order to a Limit structure at head.
      */
-    assert(limit->limitPrice == newOrder->limit);
+    if(limit->limitPrice == newOrder->limit){
+        return 0;
+    }
     newOrder->parentLimit = limit;
     newOrder->nextOrder = limit->headOrder;
     newOrder->prevOrder= NULL;
@@ -31,7 +36,7 @@ pushOrder(Limit *limit, Order *newOrder){
     limit->size += newOrder->shares;
     limit->totalVolume += newOrder->shares * limit->limitPrice;
 
-    return;
+    return 1;
 }
 
 int
@@ -389,21 +394,32 @@ getMaximumLimit(Limit *limit){
 int
 getHeight(Limit *limit){
     /**
-     * Calculate the height of the limits under the passed limit.
-     *
-     * This currently uses recursion.
+     * Calculate the height of the limits under the passed limit non-recursively.
      */
-    int leftHeight = 0;
-    int rightHeight = 0;
-
-    if(limit->leftChild!=NULL){
-        leftHeight = getHeight(limit->leftChild);
+    Queue queue;
+    int height = 0;
+    Limit *ptr_current;
+    push(queue, limit);
+    push(queue, NULL);
+    while(!queueIsEmpty){
+        ptr_current = pop(queue);
+        if(ptr_current == NULL){
+            if(!queueIsEmpty(queue)){
+                push(queue, NULL);
+            }
+            height++;
+        }
+        else{
+            if(ptr_current->leftChild!=NULL){
+                push(queue, ptr_current->leftChild);
+            }
+            if(ptr_current->rightChild!=NULL){
+                push(queue, ptr_current->rightChild);
+            }
+        }
     }
-
-    if(limit->rightChild!=NULL){
-        rightHeight = getHeight(limit->rightChild);
-    }
-    return leftHeight+1 ? leftHeight>rightHeight: rightHeight+1;
+    free(ptr_current);
+    return height;
 }
 
 int

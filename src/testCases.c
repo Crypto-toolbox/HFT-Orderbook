@@ -12,8 +12,6 @@
 
 /**
  * Return a Limit struct pointer
- * @param price float value of the limit
- * @return
  */
 Limit*
 createDummyLimit(float price){
@@ -25,12 +23,6 @@ createDummyLimit(float price){
 
 /**
  * Convenience function to ease setup of tests.
- *
- * @param dummyA ptr to Limit Struct
- * @param dummyB ptr to Limit Struct
- * @param dummyC ptr to Limit Struct
- * @param dummyD ptr to Limit Struct
- * @return ptr to Limit Struct Root
  */
 Limit*
 createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
@@ -73,8 +65,10 @@ TestOrderPushing(CuTest *tc){
     float expected_volume = 0.0;
     float expected_size = 0;
     int expected_orderCount = 0;
+    int returnCode = 0;
 
-    pushOrder(ptr_limit, ptr_newOrderA);
+    returnCode = pushOrder(ptr_limit, ptr_newOrderA);
+    CuAssertIntEquals(returnCode, 1):
 
     // Assert References have been correctly updated
     CuAssertPtrNotNull(tc, ptr_limit->headOrder);
@@ -103,7 +97,8 @@ TestOrderPushing(CuTest *tc){
     newOrderB.buyOrSell = 0;
     newOrderB.tid = 1235;
 
-    pushOrder(ptr_limit, ptr_newOrderB);
+    returnCode = pushOrder(ptr_limit, ptr_newOrderB);
+    CuAssertIntEquals(returnCode, 1):
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderB);
@@ -133,7 +128,8 @@ TestOrderPushing(CuTest *tc){
     newOrderC.buyOrSell = 0;
     newOrderC.tid = 1236;
 
-    pushOrder(ptr_limit, ptr_newOrderC);
+    returnCode = pushOrder(ptr_limit, ptr_newOrderC);
+    CuAssertIntEquals(returnCode, 1):
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderC);
@@ -154,6 +150,19 @@ TestOrderPushing(CuTest *tc){
     expected_size = limit.size;
     expected_volume = limit.totalVolume;
     expected_orderCount++;
+
+
+    /**
+     * Now push an order that does not have a matching limit and assert pushOrder return 0
+     */
+    Order newOrderD;
+    Order *ptr_newOrderD = &newOrderD;
+    newOrderC.limit = 2000.0;
+    newOrderC.shares = 30;
+    newOrderC.buyOrSell = 0;
+    newOrderC.tid = 1236;
+    returnCode = pushOrder(ptr_limit, ptr_newLimitD);
+    CuAssertIntEquals(returnCode, 0);
 }
 
 void
@@ -265,7 +274,7 @@ TestOrderPopping(CuTest *tc){
 }
 
 /**
- *
+ * Test Root creation and tree population funcs.
  */
 
 void
