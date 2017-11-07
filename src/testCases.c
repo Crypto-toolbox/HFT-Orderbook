@@ -524,13 +524,13 @@ TestGetMinimumLimit(CuTest *tc){
     Limit *ptr_retValue;
 
     ptr_retValue = getMinimumLimit(ptr_newLimitA);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitD);
+    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_retValue);
     ptr_retValue = getMinimumLimit(ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_retValue);
     ptr_retValue = getMinimumLimit(ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitD);
+    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_retValue);
     ptr_retValue = getMinimumLimit(ptr_root);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitD);
+    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_retValue);
 }
 
 void
@@ -550,15 +550,15 @@ TestGetHeight(CuTest *tc){
     int height = 0;
 
     height = getHeight(ptr_root);
-    CuAssertIntEquals(tc, height, 3);
+    CuAssertIntEquals(tc, 3, height);
     height = getHeight(ptr_newLimitA);
-    CuAssertIntEquals(tc, height, 2);
+    CuAssertIntEquals(tc, 2, height);
     height = getHeight(ptr_newLimitB);
-    CuAssertIntEquals(tc, height, 1);
+    CuAssertIntEquals(tc, 0, height);
     height = getHeight(ptr_newLimitC);
-    CuAssertIntEquals(tc, height, 0);
+    CuAssertIntEquals(tc, 1, height);
     height = getHeight(ptr_newLimitD);
-    CuAssertIntEquals(tc, height, 0);
+    CuAssertIntEquals(tc, 0, height);
 }
 
 void
