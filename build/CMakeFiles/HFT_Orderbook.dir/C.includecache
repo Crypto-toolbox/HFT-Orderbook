@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/nils/git/HFT-Orderbook/src/CuTest.h
+setjmp.h
+-
+stdarg.h
+-
+
+/home/nils/git/HFT-Orderbook/src/hftlob.h
+
+/home/nils/git/HFT-Orderbook/src/testCases.c
+stdio.h
+-
+assert.h
+-
+stdlib.h
+-
+math.h
+-
+CuTest.h
+/home/nils/git/HFT-Orderbook/src/CuTest.h
+hftlob.h
+/home/nils/git/HFT-Orderbook/src/hftlob.h
+
