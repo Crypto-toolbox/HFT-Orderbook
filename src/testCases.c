@@ -170,6 +170,8 @@ TestOrderPushing(CuTest *tc){
     newOrderC.tid = "1236";
     returnCode = pushOrder(ptr_limit, ptr_newOrderD);
     CuAssertIntEquals(tc, returnCode, 0);
+
+    printf("passed!\n");
 }
 
 void
@@ -283,6 +285,8 @@ TestOrderPopping(CuTest *tc){
     // // // //
     isPopped = popOrder(ptr_limit);
     CuAssertIntEquals(tc, isPopped, 0);
+
+    printf("passed!\n");
 }
 
 /**
@@ -301,6 +305,8 @@ TestCreateRoot(CuTest *tc){
     CuAssertDblEquals(tc, ptr_root->limitPrice, -INFINITY, 0.0);
     CuAssertPtrEquals(tc, ptr_root->leftChild, NULL);
     CuAssertPtrEquals(tc, ptr_root->rightChild, NULL);
+
+    printf("passed!\n");
 }
 
 void
@@ -349,6 +355,8 @@ TestAddNewLimit(CuTest *tc){
      */
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
     CuAssertIntEquals(tc, statusCode, 0);
+
+    printf("passed!\n");
 }
 
 /**
@@ -385,6 +393,8 @@ TestLimitExists(CuTest *tc){
     limit.limitPrice = 50;
     statusCode = limitExists(ptr_root, ptr_limit);
     CuAssertIntEquals(tc, statusCode, 45);
+
+    printf("passed!\n");
 }
 
 void
@@ -411,6 +421,8 @@ TestLimitIsRoot(CuTest *tc){
     CuAssertIntEquals(tc, statusCode, 0);
     statusCode = limitIsRoot(ptr_root);
     CuAssertIntEquals(tc, statusCode, 1);
+
+    printf("passed!\n");
 }
 
 void
@@ -438,6 +450,8 @@ TestHasGrandpa(CuTest *tc){
     CuAssertIntEquals(tc, statusCode, 1);
     statusCode = hasGrandpa(ptr_root);
     CuAssertIntEquals(tc, statusCode, 0);
+
+    printf("passed!\n");
 }
 
 void
@@ -465,6 +479,8 @@ TestGetGrandpa(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_grandpa, ptr_root);
     ptr_grandpa = getGrandpa(ptr_root);
     CuAssertPtrEquals(tc, ptr_grandpa, NULL);
+
+    printf("passed!\n");
 }
 
 void
@@ -492,6 +508,8 @@ TestGetMaximumLimit(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
     ptr_retValue = getMaximumLimit(ptr_root);
     CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitC);
+
+    printf("passed!\n");
 }
 
 void
@@ -519,6 +537,8 @@ TestGetMinimumLimit(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
     ptr_retValue = getMinimumLimit(ptr_root);
     CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
+
+    printf("passed!\n");
 }
 
 void
@@ -548,6 +568,8 @@ TestGetHeight(CuTest *tc){
     CuAssertIntEquals(tc, height, 0);
     height = getHeight(ptr_newLimitD);
     CuAssertIntEquals(tc, height, 0);
+    
+    printf("passed!\n");
 }
 
 void
@@ -577,6 +599,8 @@ TestGetBalanceFactor(CuTest *tc){
     CuAssertIntEquals(tc, balanceFactor, 0);
     balanceFactor = getBalanceFactor(ptr_newLimitD);
     CuAssertIntEquals(tc, balanceFactor, 0);
+
+    printf("passed!\n");
 }
 
 /**
@@ -598,7 +622,7 @@ TestReplaceLimitInParent(CuTest *tc){
 
     replaceLimitInParent(ptr_newLimitA, ptr_newLimitB);
 
-    CuFail(tc, "Finish this test!..\n");
+    CuFail(tc, "FAILURE: Finish this test!\n");
 
 }
 
@@ -655,7 +679,7 @@ TestRemoveLimit(CuTest *tc){
 
 
 
-    CuFail(tc, "Finish this test!..\n");
+    CuFail(tc, "FAILURE: Finish this test!\n");
 }
 
 void
@@ -695,6 +719,8 @@ TestRotateLL(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
+
+    printf("passed!\n");
 }
 
 void
@@ -734,6 +760,8 @@ TestRotateLR(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+
+    printf("passed!\n");
 }
 
 void
@@ -769,6 +797,8 @@ TestRotateRR(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
+
+    printf("passed!\n");
 }
 
 void
@@ -808,12 +838,14 @@ TestRotateRL(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+
+    printf("passed!\n");
 }
 
 void
 TestBalanceBranch(CuTest *tc){
     printf("Running TestBalanceBranch()..\n");
-    CuFail(tc, "Finish this test!..\n");
+    CuFail(tc, "FAILURE: Finish this test!\n");
 }
 
 
