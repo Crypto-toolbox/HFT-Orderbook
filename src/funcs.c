@@ -446,7 +446,7 @@ getHeight(Limit *limit){
     /**
      * Calculate the height of the limits under the passed limit non-recursively.
      */
-    Queue *ptr_queue = malloc(sizeof(Queue);
+    Queue *ptr_queue = malloc(sizeof(Queue));
     int height = 0;
     Limit *ptr_current;
     pushToQueue(ptr_queue, limit);
