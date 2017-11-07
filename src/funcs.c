@@ -148,7 +148,7 @@ addNewLimit(Limit *root, Limit *limit){
                 currentLimit = currentLimit->rightChild;
             }
         }
-        else if (currentLimit->limitPrice < limit->limitPrice){
+        else if (currentLimit->limitPrice > limit->limitPrice){
             if(currentLimit->leftChild == NULL){
                 currentLimit->leftChild = limit;
                 limit->parent = currentLimit;
@@ -157,6 +157,9 @@ addNewLimit(Limit *root, Limit *limit){
             else{
                 currentLimit = currentLimit->leftChild;
             }
+        }
+        else{ /*If its neither greater than nor smalle then it must be equal, and hence exist.*/
+            break;
         }
         continue;
 
