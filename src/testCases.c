@@ -225,6 +225,8 @@ TestOrderPopping(CuTest *tc){
     pushOrder(ptr_limit, ptr_newOrderB);
     pushOrder(ptr_limit, ptr_newOrderC);
 
+    Order *ptr_poppedOrder = malloc(sizeof(Order));
+
     /**
      * Pop all orders and check after each pop that all references are updated correctly, along with all relevant
      * attributes in the limit.
@@ -233,8 +235,8 @@ TestOrderPopping(CuTest *tc){
     // // // //
     // Pop # 1
     // // // //
-    int isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, 1, isPopped);
+    ptr_poppedOrder = popOrder(ptr_limit);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_poppedOrder);
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
@@ -253,8 +255,8 @@ TestOrderPopping(CuTest *tc){
     // // // //
     // Pop # 2
     // // // //
-    isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, 1, isPopped);
+    ptr_poppedOrder = popOrder(ptr_limit);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_poppedOrder);
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
@@ -270,8 +272,8 @@ TestOrderPopping(CuTest *tc){
     // // // //
     // Pop # 3
     // // // //
-    isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, isPopped, 1);
+    ptr_poppedOrder = popOrder(ptr_limit);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_poppedOrder);
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder);
@@ -285,8 +287,15 @@ TestOrderPopping(CuTest *tc){
     // // // //
     // Pop # 4
     // // // //
-    isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, 0, isPopped);
+    ptr_poppedOrder = popOrder(ptr_limit);
+    CuAssertPtrEquals(tc, NULL, ptr_poppedOrder);
+
+    free(ptr_poppedOrder);
+}
+
+void
+TestRemoveOrder(CuTest *tc){
+    CuFail(tc, "Finish this test!");
 }
 
 /**
@@ -829,6 +838,7 @@ CuSuite* HFTLobGetSuite(void){
     SUITE_ADD_TEST(suite, TestCreateDummyTree);
     SUITE_ADD_TEST(suite, TestOrderPushing);
     SUITE_ADD_TEST(suite, TestOrderPopping);
+    SUITE_ADD_TEST(suite, TestRemoveOrder);
     SUITE_ADD_TEST(suite, TestCreateRoot);
     SUITE_ADD_TEST(suite, TestAddNewLimit);
     SUITE_ADD_TEST(suite, TestLimitExists);
