@@ -15,6 +15,7 @@ pushToQueue(Queue *q, Limit *limit){
     q->head = ptr_newItem;
     ptr_newItem->previous = q->tail;
     q->tail = ptr_newItem;
+    q->size++;
 }
 
 Limit*
@@ -28,6 +29,7 @@ popFromQueue(Queue *q){
     if(q->tail==NULL){
         q->head = NULL;
     }
+    q->size--;
     free(poppedItem);
     return poppedLimit;
 }
