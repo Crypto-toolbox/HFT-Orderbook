@@ -398,7 +398,10 @@ TestLimitExists(CuTest *tc){
     CuAssertIntEquals(tc, statusCode, 1);
     limit.limitPrice = 50;
     statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, statusCode, 45);
+    CuAssertIntEquals(tc, statusCode, 1);
+    limit.limitPrice = 500;
+    statusCode = limitExists(ptr_root, ptr_limit);
+    CuAssertIntEquals(tc, statusCode, 0);
 }
 
 void
