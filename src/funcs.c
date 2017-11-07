@@ -16,7 +16,7 @@ pushOrder(Limit *limit, Order *newOrder){
     /**
      * Add an Order to a Limit structure at head.
      */
-    if(limit->limitPrice == newOrder->limit){
+    if(limit->limitPrice != newOrder->limit){
         return 0;
     }
     newOrder->parentLimit = limit;
