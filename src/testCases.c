@@ -73,12 +73,7 @@ TestCreateDummyTree(CuTest *tc){
 
 void
 TestOrderPushing(CuTest *tc){
-    Limit limit;
-    Limit *ptr_limit = &limit;
-    initLimit(ptr_limit);
-    limit.limitPrice = 1000.0;
-
-
+    Limit *ptr_limit = createDummyLimit(1000.0);
     /**
      * Push a single order to an empty limit and check that both tail and head point towards it.
      * Also check that the inserted Order has the ptr set in its Order.parentLimit attribute.
@@ -106,11 +101,11 @@ TestOrderPushing(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderA);
     CuAssertPtrEquals(tc, ptr_limit->tailOrder->parentLimit, ptr_limit);
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, limit.totalVolume, expected_size + newOrderA.shares * limit.limitPrice, 0.0);
-    CuAssertDblEquals(tc, limit.size, expected_size + newOrderA.shares, 0.0);
-    CuAssertIntEquals(tc, limit.orderCount, 1);
-    expected_size = limit.size;
-    expected_volume = limit.totalVolume;
+    CuAssertDblEquals(tc, ptr_limit->totalVolume, 10000.0, 0.0);
+    CuAssertDblEquals(tc, ptr_limit->size, 10, 0.0);
+    CuAssertIntEquals(tc, ptr_limit->orderCount, 1);
+    expected_size = ptr_limit->size;
+    expected_volume = ptr_limit->totalVolume;
     expected_orderCount++;
 
 
@@ -140,12 +135,9 @@ TestOrderPushing(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder, ptr_newOrderB);
     CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder, NULL);
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, limit.totalVolume, expected_size + newOrderB.shares * limit.limitPrice, 0.0);
-    CuAssertDblEquals(tc, limit.size, expected_size + newOrderB.shares, 0.0);
-    CuAssertIntEquals(tc, limit.orderCount, 2);
-    expected_size = limit.size;
-    expected_volume = limit.totalVolume;
-    expected_orderCount++;
+    CuAssertDblEquals(tc, ptr_limit->totalVolume, 30000, 0.0);
+    CuAssertDblEquals(tc, ptr_limit->size, 30, 0.0);
+    CuAssertIntEquals(tc, ptr_limit->orderCount, 2);
 
     /**
      * Push a final order and assert that all references are updated correctly.Make sure that not only head and tail
@@ -164,6 +156,7 @@ TestOrderPushing(CuTest *tc){
 
     // Assert References have been correctly updated
     CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderC);
+    CuAssertPtrEquals(tc, ptr_limit->headOrder->parentLimit, ptr_limit);
     CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderA);
     CuAssertPtrEquals(tc, ptr_limit->tailOrder->parentLimit, ptr_limit);
     CuAssertPtrEquals(tc, ptr_limit->headOrder->parentLimit, ptr_limit);
@@ -171,15 +164,15 @@ TestOrderPushing(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_limit->headOrder->prevOrder, NULL);
     CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder, ptr_newOrderB);
     CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder->nextOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder->prevOrder, ptr_newOrderB);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder->parentLimit, ptr_limit);
+    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder->nextOrder, ptr_newOrderA);
+    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder->prevOrder, ptr_newOrderC);
+    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder->parentLimit, ptr_limit);
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, limit.totalVolume, expected_size + newOrderB.shares * limit.limitPrice, 0.0);
-    CuAssertDblEquals(tc, limit.size, expected_size + newOrderB.shares, 0.0);
-    CuAssertIntEquals(tc, limit.orderCount, 2);
-    expected_size = limit.size;
-    expected_volume = limit.totalVolume;
+    CuAssertDblEquals(tc, ptr_limit->totalVolume, 60000, 0.0);
+    CuAssertDblEquals(tc, ptr_limit->size, 60, 0.0);
+    CuAssertIntEquals(tc, ptr_limit->orderCount, 3);
+    expected_size = ptr_limit->size;
+    expected_volume = ptr_limit->totalVolume;
     expected_orderCount++;
 
 
@@ -321,7 +314,7 @@ TestCreateRoot(CuTest *tc){
      */
     Limit *ptr_root = createRoot();
     CuAssertPtrEquals(tc, ptr_root->parent, NULL);
-    CuAssertDblEquals(tc, ptr_root->limitPrice, -INFINITY, 0.0);
+    CuAssertTrue(tc, isinf(ptr_root->limitPrice));
     CuAssertPtrEquals(tc, ptr_root->leftChild, NULL);
     CuAssertPtrEquals(tc, ptr_root->rightChild, NULL);
 }
