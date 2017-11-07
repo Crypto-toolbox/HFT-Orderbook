@@ -74,7 +74,7 @@ queueIsEmpty(Queue *q);
 int
 pushOrder(Limit *limit, Order *new_order);
 
-int
+Order*
 popOrder(Limit *limit);
 
 /**
