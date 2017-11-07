@@ -339,8 +339,8 @@ TestAddNewLimit(CuTest *tc){
     statusCode = addNewLimit(ptr_root, ptr_newLimitA);
     CuAssertIntEquals(tc, statusCode, 1);
 
-    CuAssertPtrEquals(tc, ptr_root->leftChild, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->parent, ptr_root);
+    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitA);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->parent, ptr_root);
 
     /**
       * Add the second limit. Assert it is added as root->leftChild->leftChild. Check references to parent.
@@ -348,8 +348,8 @@ TestAddNewLimit(CuTest *tc){
     statusCode = addNewLimit(ptr_root, ptr_newLimitB);
     CuAssertIntEquals(tc, statusCode, 1);
 
-    CuAssertPtrEquals(tc, ptr_root->leftChild->leftChild, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->leftChild->parent, ptr_newLimitA);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild->parent, ptr_newLimitA);
 
     /**
       * Add the third limit. Assert it is added as root->leftChild->rightChild. Check references to parent.
@@ -357,8 +357,8 @@ TestAddNewLimit(CuTest *tc){
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
     CuAssertIntEquals(tc, statusCode, 1);
 
-    CuAssertPtrEquals(tc, ptr_root->leftChild->rightChild, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->rightChild->parent, ptr_newLimitA);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild->parent, ptr_newLimitA);
     /**
      * Add a duplicate limit and assert the returned status code is 0.
      */
