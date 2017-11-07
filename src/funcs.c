@@ -112,6 +112,34 @@ popOrder(Limit *limit){
     return 1;
 }
 
+int
+removeOrder(Order *order){
+    /**
+     * Remove the order from where it is at.
+     */
+    if(order->parentLimit->headOrder == order && order->parentLimit->tailOrder == order){
+        order->parentLimit->headOrder = NULL;
+        order->parentLimit->headOrder = NULL;
+    }
+    else if(order->prevOrder != NULL && order->nextOrder != NULL){
+        order->prevOrder->nextOrder = order->nextOrder;
+        order->nextOrder->prevOrder = order->prevOrder;
+    }
+    else if(order->nextOrder == NULL){
+        order->prevOrder->nextOrder = NULL;
+        order->parentLimit->tailOrder = order->prevOrder;
+    }
+    else if(order->prevOrder == NULL){
+        order->nextOrder->prevOrder = NULL;
+        order->parentLimit->headOrder = order->nextOrder;
+    }
+    else{
+        return -1;
+    }
+
+    return 1;
+}
+
 /*
 Limit-related data operations
 */
