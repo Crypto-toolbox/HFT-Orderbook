@@ -524,13 +524,13 @@ TestGetMinimumLimit(CuTest *tc){
     Limit *ptr_retValue;
 
     ptr_retValue = getMinimumLimit(ptr_newLimitA);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
+    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitD);
     ptr_retValue = getMinimumLimit(ptr_newLimitB);
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitB);
     ptr_retValue = getMinimumLimit(ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitD);
     ptr_retValue = getMinimumLimit(ptr_root);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
+    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitD);
 }
 
 void
