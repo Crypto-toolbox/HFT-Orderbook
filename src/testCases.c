@@ -693,14 +693,14 @@ TestRemoveLimit(CuTest *tc){
     // Remove first child
     statusCode = removeLimit(ptr_newLimitB);
     CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->leftChild, NULL);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, ptr_newLimitC);
 
     // Remove second child
     statusCode = removeLimit(ptr_newLimitC);
     CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_root->leftChild->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, NULL);
+    CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, NULL);
 
     /**
      * TestCase2: Remove a limit which has a single child and parent
@@ -823,7 +823,7 @@ TestRotateRR(CuTest *tc){
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
     CuAssertIntEquals(tc, statusCode, 1);
 
-    rotateLeftLeft(ptr_newLimitA);
+    rotateRightRight(ptr_newLimitA);
 
     CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
     CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitA);
@@ -864,7 +864,7 @@ TestRotateRL(CuTest *tc){
      * Assert that all references are correctly updated and the pointers are correct.
      */
 
-    rotateLeftRight(ptr_newLimitA);
+    rotateRightLeft(ptr_newLimitA);
 
     CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
     CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitA);
