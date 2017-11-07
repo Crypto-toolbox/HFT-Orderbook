@@ -40,6 +40,35 @@ createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
     return (ptr_root);
 }
 
+void
+TestCreateDummyTree(CuTest *tc){
+printf("Running TestCreateDummyTree()..\n");
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(200.0);
+    Limit *ptr_newLimitC = createDummyLimit(50.0);
+    Limit *ptr_newLimitD = createDummyLimit(45.0);
+    Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitA);
+
+    CuAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_root);
+    CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitA->rightChild, ptr_newLimitB);
+
+    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitA);
+    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
+
+    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitA);
+    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitD);
+    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, NULL);
+
+    CuAssertPtrEquals(tc, ptr_newLimitD->parent, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitD->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitD->rightChild, NULL);
+
+    printf("passed!\n");
+}
 
 /**
  * Test Functions related to adding and removing orders to/from a limit.
@@ -871,6 +900,7 @@ CuSuite* HFTLobGetSuite(void){
      */
     CuSuite* suite = CuSuiteNew();
 
+    SUITE_ADD_TEST(suite, TestCreateDummyTree);
     SUITE_ADD_TEST(suite, TestOrderPushing);
     SUITE_ADD_TEST(suite, TestOrderPopping);
     SUITE_ADD_TEST(suite, TestCreateRoot);
