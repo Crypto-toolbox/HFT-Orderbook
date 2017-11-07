@@ -578,15 +578,15 @@ TestGetBalanceFactor(CuTest *tc){
     int balanceFactor = 0;
 
     balanceFactor = getBalanceFactor(ptr_root);
-    CuAssertIntEquals(tc, balanceFactor, 3);
+    CuAssertIntEquals(tc, 3, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitA);
-    CuAssertIntEquals(tc, balanceFactor, -1);
+    CuAssertIntEquals(tc, -1, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitB);
-    CuAssertIntEquals(tc, balanceFactor, 1);
+    CuAssertIntEquals(tc, 1, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitC);
-    CuAssertIntEquals(tc, balanceFactor, 0);
+    CuAssertIntEquals(tc, 0, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitD);
-    CuAssertIntEquals(tc, balanceFactor, 0);
+    CuAssertIntEquals(tc, 0, balanceFactor);
 }
 
 /**
