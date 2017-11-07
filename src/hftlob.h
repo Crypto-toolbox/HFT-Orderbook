@@ -34,6 +34,7 @@ typedef struct QueueItem{
 } QueueItem;
 
 typedef struct Queue{
+    int size;
     QueueItem *head;
     QueueItem *tail;
 } Queue;
@@ -49,6 +50,9 @@ initLimit(Limit *limit);
 
 void
 initQueueItem(QueueItem *item);
+
+void
+initQueue(Queue *q);
 
 /**
  * QUEUE FUNCTIONS

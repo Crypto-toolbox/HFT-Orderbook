@@ -43,6 +43,13 @@ initQueueItem(QueueItem *item){
     item->previous = NULL;
 }
 
+void
+initQueue(Queue *q){
+    q->size = 0;
+    q->head = NULL;
+    q->tail = NULL;
+}
+
 /*
 Functions for Order related operations
 */
@@ -446,26 +453,29 @@ getHeight(Limit *limit){
     /**
      * Calculate the height of the limits under the passed limit non-recursively.
      */
-    Queue *ptr_queue = malloc(sizeof(Queue));
+
     int height = 0;
+    int qsize = 0;
+
+    Queue *ptr_queue = malloc(sizeof(Queue));
+    initQueue(ptr_queue);
     Limit *ptr_current;
     pushToQueue(ptr_queue, limit);
-    pushToQueue(ptr_queue, NULL);
-    while(!queueIsEmpty(ptr_queue)){
-        ptr_current = popFromQueue(ptr_queue);
-        if(ptr_current == NULL){
-            if(!queueIsEmpty(ptr_queue)){
-                pushToQueue(ptr_queue, NULL);
-            }
-            height++;
+    while(1){
+        qsize = ptr_queue->size;
+        if(qsize == 0){
+            break;
         }
-        else{
-            if(ptr_current->leftChild!=NULL){
+        height++;
+        while(qsize > 0){
+            ptr_current = popFromQueue(ptr_queue);
+            if(ptr_current->leftChild != NULL){
                 pushToQueue(ptr_queue, ptr_current->leftChild);
             }
-            if(ptr_current->rightChild!=NULL){
+            if(ptr_current->rightChild != NULL){
                 pushToQueue(ptr_queue, ptr_current->rightChild);
             }
+            qsize--;
         }
     }
     free(ptr_queue);
