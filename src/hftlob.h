@@ -39,6 +39,18 @@ typedef struct Queue{
 } Queue;
 
 /**
+ * INIT FUNCTIONS
+ */
+void
+initOrder(Order *order);
+
+void
+initLimit(Limit *limit);
+
+void
+initQueueItem(QueueItem *item);
+
+/**
  * QUEUE FUNCTIONS
  */
 
