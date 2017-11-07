@@ -82,23 +82,23 @@ pushOrder(Limit *limit, Order *newOrder){
     return 1;
 }
 
-int
+Order*
 popOrder(Limit *limit){
     /**
      * Pop the order at the tail of a Limit structure.
      */
     if (limit->tailOrder == NULL){
-        return 0;
+        return NULL;
     }
 
-    Order* oldTail = limit->tailOrder;
+    Order *ptr_poppedOrder = limit->tailOrder;
 
     if (limit->tailOrder->prevOrder!= NULL){
         limit->tailOrder = limit->tailOrder->prevOrder;
         limit->tailOrder->nextOrder = NULL;
         limit->orderCount--;
-        limit->size -= oldTail->shares;
-        limit->totalVolume -= oldTail->shares * limit->limitPrice;
+        limit->size -= ptr_poppedOrder->shares;
+        limit->totalVolume -= ptr_poppedOrder->shares * limit->limitPrice;
     }
     else{
         limit->headOrder = NULL;
@@ -108,8 +108,7 @@ popOrder(Limit *limit){
         limit->totalVolume = 0;
     }
 
-
-    return 1;
+    return ptr_poppedOrder;
 }
 
 int
