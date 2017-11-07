@@ -428,11 +428,11 @@ getMinimumLimit(Limit *limit){
      * Return the left-most limit struct for the given limit
      * tree / branch.
      */
-    Limit *minimum = limit;
-    while(minimum->leftChild != NULL){
-        minimum = minimum->leftChild;
+    Limit *ptr_minimum = limit;
+    while(ptr_minimum->leftChild != NULL){
+        ptr_minimum = ptr_minimum->leftChild;
     }
-    return minimum;
+    return (ptr_minimum);
 }
 
 Limit*
@@ -441,11 +441,11 @@ getMaximumLimit(Limit *limit){
      * Return the right-most limit struct for the given limit
      * tree / branch.
      */
-    Limit *maximum = limit;
-    while(maximum->rightChild != NULL){
-        maximum = maximum->rightChild;
+    Limit *ptr_maximum = limit;
+    while(ptr_maximum->rightChild != NULL){
+        ptr_maximum = ptr_maximum->rightChild;
     }
-    return maximum;
+    return (ptr_maximum);
 }
 
 int
