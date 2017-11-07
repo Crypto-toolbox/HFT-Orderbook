@@ -115,9 +115,7 @@ createRoot(void){
      * Create a Limit structure as root and return a ptr to it.
      */
     Limit *ptr_limit = malloc(sizeof(Limit));
-    ptr_limit->parent = NULL;
-    ptr_limit->leftChild = NULL;
-    ptr_limit->rightChild = NULL;
+    initLimit(ptr_limit);
     ptr_limit->limitPrice = -INFINITY;
     return ptr_limit;
 }
