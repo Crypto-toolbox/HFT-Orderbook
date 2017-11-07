@@ -5,12 +5,12 @@
  */
 
 typedef struct Order{
-    int tid;
+    char *tid;
     unsigned buyOrSell;
     double shares;
-    int limit;
-    int entryTime;
-    int eventTime;
+    double limit;
+    double entryTime;
+    double eventTime;
     struct Order *nextOrder;
     struct Order *prevOrder;
     struct Limit *parentLimit;
@@ -28,14 +28,14 @@ typedef struct Limit{
     struct Order *tailOrder;
 } Limit;
 
-typedef struct QItem{
+typedef struct QueueItem{
     Limit *limit;
-    struct QItem *previous;
-} QItem;
+    struct QueueItem *previous;
+} QueueItem;
 
 typedef struct Queue{
-    QItem *head;
-    QItem *tail;
+    QueueItem *head;
+    QueueItem *tail;
 } Queue;
 
 /**
