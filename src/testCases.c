@@ -42,7 +42,6 @@ createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
 
 void
 TestCreateDummyTree(CuTest *tc){
-printf("Running TestCreateDummyTree()..\n");
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
     Limit *ptr_newLimitC = createDummyLimit(50.0);
@@ -66,8 +65,6 @@ printf("Running TestCreateDummyTree()..\n");
     CuAssertPtrEquals(tc, ptr_newLimitD->parent, ptr_newLimitC);
     CuAssertPtrEquals(tc, ptr_newLimitD->leftChild, NULL);
     CuAssertPtrEquals(tc, ptr_newLimitD->rightChild, NULL);
-
-    printf("passed!\n");
 }
 
 /**
@@ -76,7 +73,6 @@ printf("Running TestCreateDummyTree()..\n");
 
 void
 TestOrderPushing(CuTest *tc){
-    printf("Running TestOrderPushing()..\n");
     Limit limit;
     Limit *ptr_limit = &limit;
     initLimit(ptr_limit);
@@ -199,13 +195,10 @@ TestOrderPushing(CuTest *tc){
     newOrderC.tid = "1236";
     returnCode = pushOrder(ptr_limit, ptr_newOrderD);
     CuAssertIntEquals(tc, returnCode, 0);
-
-    printf("passed!\n");
 }
 
 void
 TestOrderPopping(CuTest *tc){
-    printf("Running TestOrderPopping()..\n");
     Limit limit;
     Limit *ptr_limit = &limit;
     initLimit(ptr_limit);
@@ -314,8 +307,6 @@ TestOrderPopping(CuTest *tc){
     // // // //
     isPopped = popOrder(ptr_limit);
     CuAssertIntEquals(tc, isPopped, 0);
-
-    printf("passed!\n");
 }
 
 /**
@@ -324,7 +315,6 @@ TestOrderPopping(CuTest *tc){
 
 void
 TestCreateRoot(CuTest *tc){
-    printf("Running TestCreateRoot()..\n");
     /**
      * Test the createRoot() function and assert it creates a root with limitPrice of -INFINITY, no children
      * and no parent.
@@ -334,13 +324,10 @@ TestCreateRoot(CuTest *tc){
     CuAssertDblEquals(tc, ptr_root->limitPrice, -INFINITY, 0.0);
     CuAssertPtrEquals(tc, ptr_root->leftChild, NULL);
     CuAssertPtrEquals(tc, ptr_root->rightChild, NULL);
-
-    printf("passed!\n");
 }
 
 void
 TestAddNewLimit(CuTest *tc){
-    printf("Running TestAddNewLimit()..\n");
     /**
      * Assert that the addNewLimit() function adds a Limit structure dependent on it limitPrice into a
      * given root Limit structure.
@@ -384,8 +371,6 @@ TestAddNewLimit(CuTest *tc){
      */
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
     CuAssertIntEquals(tc, statusCode, 0);
-
-    printf("passed!\n");
 }
 
 /**
@@ -394,7 +379,6 @@ TestAddNewLimit(CuTest *tc){
 
 void
 TestLimitExists(CuTest *tc){
-    printf("Running TestLimitExists()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -422,13 +406,10 @@ TestLimitExists(CuTest *tc){
     limit.limitPrice = 50;
     statusCode = limitExists(ptr_root, ptr_limit);
     CuAssertIntEquals(tc, statusCode, 45);
-
-    printf("passed!\n");
 }
 
 void
 TestLimitIsRoot(CuTest *tc){
-    printf("Running TestLimitIsRoot()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -450,13 +431,10 @@ TestLimitIsRoot(CuTest *tc){
     CuAssertIntEquals(tc, statusCode, 0);
     statusCode = limitIsRoot(ptr_root);
     CuAssertIntEquals(tc, statusCode, 1);
-
-    printf("passed!\n");
 }
 
 void
 TestHasGrandpa(CuTest *tc){
-    printf("Running TestHasGrandpa()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -479,13 +457,10 @@ TestHasGrandpa(CuTest *tc){
     CuAssertIntEquals(tc, statusCode, 1);
     statusCode = hasGrandpa(ptr_root);
     CuAssertIntEquals(tc, statusCode, 0);
-
-    printf("passed!\n");
 }
 
 void
 TestGetGrandpa(CuTest *tc){
-    printf("Running TestgetGrandpa()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -508,13 +483,10 @@ TestGetGrandpa(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_grandpa, ptr_root);
     ptr_grandpa = getGrandpa(ptr_root);
     CuAssertPtrEquals(tc, ptr_grandpa, NULL);
-
-    printf("passed!\n");
 }
 
 void
 TestGetMaximumLimit(CuTest *tc){
-    printf("Running TestGetMaximumLimit()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -537,13 +509,10 @@ TestGetMaximumLimit(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
     ptr_retValue = getMaximumLimit(ptr_root);
     CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitC);
-
-    printf("passed!\n");
 }
 
 void
 TestGetMinimumLimit(CuTest *tc){
-    printf("Running TestGetMinimumLimit()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -566,13 +535,10 @@ TestGetMinimumLimit(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
     ptr_retValue = getMinimumLimit(ptr_root);
     CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
-
-    printf("passed!\n");
 }
 
 void
 TestGetHeight(CuTest *tc){
-    printf("Running TestGetHeight()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -597,13 +563,10 @@ TestGetHeight(CuTest *tc){
     CuAssertIntEquals(tc, height, 0);
     height = getHeight(ptr_newLimitD);
     CuAssertIntEquals(tc, height, 0);
-    
-    printf("passed!\n");
 }
 
 void
 TestGetBalanceFactor(CuTest *tc){
-    printf("Running TestGetBalance()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -628,8 +591,6 @@ TestGetBalanceFactor(CuTest *tc){
     CuAssertIntEquals(tc, balanceFactor, 0);
     balanceFactor = getBalanceFactor(ptr_newLimitD);
     CuAssertIntEquals(tc, balanceFactor, 0);
-
-    printf("passed!\n");
 }
 
 /**
@@ -638,7 +599,6 @@ TestGetBalanceFactor(CuTest *tc){
 
 void
 TestReplaceLimitInParent(CuTest *tc){
-    printf("Running TestReplaceLimitInParent()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -664,14 +624,10 @@ TestReplaceLimitInParent(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
     CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
     CuAssertPtrEquals(tc, ptr_newLimitD->parent, ptr_newLimitC);
-
-    printf("passed!\n");
-
 }
 
 void
 TestRemoveLimit(CuTest *tc){
-    printf("Running TestRemoveLimit()..\n");
     // Setup test BST for test.
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -720,12 +676,11 @@ TestRemoveLimit(CuTest *tc){
 
 
 
-    CuFail(tc, "FAILURE: Finish this test!\n");
+    CuFail(tc, "Finish this test!\n");
 }
 
 void
 TestRotateLL(CuTest *tc){
-    printf("Running TestRotateLL()..\n");
     // Setup the BST Tree
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(50.0);
@@ -760,13 +715,10 @@ TestRotateLL(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
-
-    printf("passed!\n");
 }
 
 void
 TestRotateLR(CuTest *tc){
-    printf("Running TestRotateLR()..\n");
     // Setup the BST Tree
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(50.0);
@@ -801,13 +753,10 @@ TestRotateLR(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
-
-    printf("passed!\n");
 }
 
 void
 TestRotateRR(CuTest *tc){
-    printf("Running TestRotateRR()..\n");
     // Setup the BST Tree
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -838,13 +787,10 @@ TestRotateRR(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
-
-    printf("passed!\n");
 }
 
 void
 TestRotateRL(CuTest *tc){
-    printf("Running TestRotateRL()..\n");
     // Setup the BST Tree
     Limit *ptr_newLimitA = createDummyLimit(100.0);
     Limit *ptr_newLimitB = createDummyLimit(200.0);
@@ -879,14 +825,11 @@ TestRotateRL(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
-
-    printf("passed!\n");
 }
 
 void
 TestBalanceBranch(CuTest *tc){
-    printf("Running TestBalanceBranch()..\n");
-    CuFail(tc, "FAILURE: Finish this test!\n");
+    CuFail(tc, "Finish this test!\n");
 }
 
 
