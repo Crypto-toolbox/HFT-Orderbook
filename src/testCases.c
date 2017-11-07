@@ -621,8 +621,22 @@ TestReplaceLimitInParent(CuTest *tc){
      */
 
     replaceLimitInParent(ptr_newLimitA, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
 
-    CuFail(tc, "FAILURE: Finish this test!\n");
+    free(ptr_root);
+    ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    replaceLimitInParent(ptr_newLimitA, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitD);
+    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
+    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitD->parent, ptr_newLimitC);
+
+    printf("passed!\n");
 
 }
 
@@ -639,8 +653,6 @@ TestRemoveLimit(CuTest *tc){
     /**
      * Assert that removeLimit() successfully removes a limit, no matter where this limit is present at.
      */
-
-
 
     /**
      * TestCase1: Removing Limits which are present as children, with no children of their own.
