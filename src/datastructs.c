@@ -7,7 +7,7 @@
 void
 pushToQueue(Queue *q, Limit *limit){
     QueueItem *ptr_newItem = malloc(sizeof(QueueItem));
-    newItem->limit = limit;
+    ptr_newItem->limit = limit;
 
     if(q->head != NULL){
         q->head->previous = ptr_newItem;
@@ -22,7 +22,7 @@ popFromQueue(Queue *q){
     if(q->tail == NULL){
         return NULL;
     }
-    Limit *poppedItem = q->tail;
+    QueueItem *poppedItem = q->tail;
     Limit *poppedLimit = q->tail->limit;
     q->tail = q->tail->previous;
     if(q->tail==NULL){
