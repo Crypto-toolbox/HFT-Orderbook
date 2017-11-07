@@ -498,13 +498,13 @@ TestGetMaximumLimit(CuTest *tc){
     Limit *ptr_retValue;
 
     ptr_retValue = getMaximumLimit(ptr_newLimitA);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitB);
     ptr_retValue = getMaximumLimit(ptr_newLimitB);
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitB);
     ptr_retValue = getMaximumLimit(ptr_newLimitC);
     CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
     ptr_retValue = getMaximumLimit(ptr_root);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitC);
+    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
 }
 
 void
