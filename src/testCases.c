@@ -48,23 +48,23 @@ TestCreateDummyTree(CuTest *tc){
     Limit *ptr_newLimitD = createDummyLimit(45.0);
     Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
 
-    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitA);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_root->rightChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitA->rightChild, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitA->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitA->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitA->rightChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->leftChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->rightChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitD);
-    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_newLimitC->leftChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitC->rightChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitD->parent, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitD->leftChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitD->rightChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitD->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitD->leftChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitD->rightChild);
 }
 
 /**
@@ -97,13 +97,13 @@ TestOrderPushing(CuTest *tc){
     // Assert References have been correctly updated
     CuAssertPtrNotNull(tc, ptr_limit->headOrder);
     CuAssertPtrNotNull(tc, ptr_limit->tailOrder);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->parentLimit, ptr_limit);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->tailOrder->parentLimit);
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, ptr_limit->totalVolume, 10000.0, 0.0);
-    CuAssertDblEquals(tc, ptr_limit->size, 10, 0.0);
-    CuAssertIntEquals(tc, ptr_limit->orderCount, 1);
+    CuAssertDblEquals(tc, 10000.0, ptr_limit->totalVolume, 0.0);
+    CuAssertDblEquals(tc, 10.0, ptr_limit->size, 0.0);
+    CuAssertIntEquals(tc, 1, ptr_limit->orderCount);
     expected_size = ptr_limit->size;
     expected_volume = ptr_limit->totalVolume;
     expected_orderCount++;
@@ -123,21 +123,21 @@ TestOrderPushing(CuTest *tc){
     newOrderB.tid = "1235";
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderB);
-    CuAssertIntEquals(tc, returnCode, 1);
+    CuAssertIntEquals(tc, 1, returnCode);
 
     // Assert References have been correctly updated
-    CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderB);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->parentLimit, ptr_limit);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->parentLimit, ptr_limit);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->nextOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->prevOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder, ptr_newOrderB);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder, NULL);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->tailOrder->parentLimit);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->headOrder->parentLimit);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->headOrder->nextOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder->prevOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_limit->tailOrder->prevOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->tailOrder->nextOrder);
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, ptr_limit->totalVolume, 30000, 0.0);
-    CuAssertDblEquals(tc, ptr_limit->size, 30, 0.0);
-    CuAssertIntEquals(tc, ptr_limit->orderCount, 2);
+    CuAssertDblEquals(tc, 30000.0, ptr_limit->totalVolume, 0.0);
+    CuAssertDblEquals(tc, 30.0, ptr_limit->size, 0.0);
+    CuAssertIntEquals(tc, 2, ptr_limit->orderCount);
 
     /**
      * Push a final order and assert that all references are updated correctly.Make sure that not only head and tail
@@ -152,25 +152,25 @@ TestOrderPushing(CuTest *tc){
     newOrderC.tid = "1236";
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderC);
-    CuAssertIntEquals(tc, returnCode, 1);
+    CuAssertIntEquals(tc, 1, returnCode);
 
     // Assert References have been correctly updated
-    CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderC);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->parentLimit, ptr_limit);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->parentLimit, ptr_limit);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->parentLimit, ptr_limit);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->nextOrder, ptr_newOrderB);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->prevOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder, ptr_newOrderB);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder->nextOrder, ptr_newOrderA);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder->prevOrder, ptr_newOrderC);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder->parentLimit, ptr_limit);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->headOrder->parentLimit);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->tailOrder->parentLimit);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->headOrder->parentLimit);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_limit->headOrder->nextOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder->prevOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_limit->tailOrder->prevOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->tailOrder->nextOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->tailOrder->prevOrder->nextOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->tailOrder->prevOrder->prevOrder);
+    CuAssertPtrEquals(tc, ptr_limit, ptr_limit->tailOrder->prevOrder->parentLimit);
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, ptr_limit->totalVolume, 60000, 0.0);
-    CuAssertDblEquals(tc, ptr_limit->size, 60, 0.0);
-    CuAssertIntEquals(tc, ptr_limit->orderCount, 3);
+    CuAssertDblEquals(tc, 60000.0, ptr_limit->totalVolume, 0.0);
+    CuAssertDblEquals(tc, 60.0, ptr_limit->size, 0.0);
+    CuAssertIntEquals(tc, 3, ptr_limit->orderCount);
     expected_size = ptr_limit->size;
     expected_volume = ptr_limit->totalVolume;
     expected_orderCount++;
@@ -187,7 +187,7 @@ TestOrderPushing(CuTest *tc){
     newOrderC.buyOrSell = 0;
     newOrderC.tid = "1236";
     returnCode = pushOrder(ptr_limit, ptr_newOrderD);
-    CuAssertIntEquals(tc, returnCode, 0);
+    CuAssertIntEquals(tc, 0, returnCode);
 }
 
 void
@@ -225,10 +225,6 @@ TestOrderPopping(CuTest *tc){
     pushOrder(ptr_limit, ptr_newOrderB);
     pushOrder(ptr_limit, ptr_newOrderC);
 
-    float currentSize = limit.size;
-    float currentVolume = limit.totalVolume;
-    int currentOrderCount = limit.orderCount;
-
     /**
      * Pop all orders and check after each pop that all references are updated correctly, along with all relevant
      * attributes in the limit.
@@ -238,47 +234,38 @@ TestOrderPopping(CuTest *tc){
     // Pop # 1
     // // // //
     int isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, isPopped, 1);
+    CuAssertIntEquals(tc, 1, isPopped);
 
     // Assert References have been correctly updated
-    CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderC);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderB);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->prevOrder, ptr_newOrderC);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder->nextOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->prevOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->headOrder->nextOrder, ptr_newOrderB);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->tailOrder->prevOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->tailOrder->nextOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder->prevOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderB, ptr_limit->headOrder->nextOrder);
 
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, limit.totalVolume, currentVolume - newOrderA.shares * limit.limitPrice, 0.0);
-    CuAssertDblEquals(tc, limit.size, currentSize - newOrderA.shares, 0.0);
-    CuAssertIntEquals(tc, limit.orderCount, 2);
+    CuAssertDblEquals(tc, 50000.0, limit.totalVolume, 0.0);
+    CuAssertDblEquals(tc, 50.0, limit.size, 0.0);
+    CuAssertIntEquals(tc, 2, limit.orderCount);
 
-    // Update test vars
-    currentSize = limit.size;
-    currentVolume = limit.totalVolume;
-    currentOrderCount = limit.orderCount;
 
     // // // //
     // Pop # 2
     // // // //
     isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, isPopped, 1);
+    CuAssertIntEquals(tc, 1, isPopped);
 
     // Assert References have been correctly updated
-    CuAssertPtrEquals(tc, ptr_limit->headOrder, ptr_newOrderC);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder, ptr_newOrderC);
-    CuAssertPtrEquals(tc, ptr_newOrderC->prevOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_newOrderC->nextOrder, NULL);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderC->prevOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderC->nextOrder);
 
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, limit.totalVolume, currentVolume - newOrderB.shares * limit.limitPrice, 0.0);
-    CuAssertDblEquals(tc, limit.size, currentSize - newOrderB.shares, 0.0);
-    CuAssertIntEquals(tc, limit.orderCount, 1);
-
-    // Update test vars
-    currentSize = limit.size;
-    currentVolume = limit.totalVolume;
-    currentOrderCount = limit.orderCount;
+    CuAssertDblEquals(tc, 30000.0, limit.totalVolume, 0.0);
+    CuAssertDblEquals(tc, 30.0, limit.size, 0.0);
+    CuAssertIntEquals(tc, 1, limit.orderCount);
 
     // // // //
     // Pop # 3
@@ -287,19 +274,19 @@ TestOrderPopping(CuTest *tc){
     CuAssertIntEquals(tc, isPopped, 1);
 
     // Assert References have been correctly updated
-    CuAssertPtrEquals(tc, ptr_limit->headOrder, NULL);
-    CuAssertPtrEquals(tc, ptr_limit->tailOrder, NULL);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->tailOrder);
 
     // Assert that attributes in limit have been correctly updated
-    CuAssertDblEquals(tc, limit.totalVolume, currentVolume - newOrderC.shares * limit.limitPrice, 0.0);
-    CuAssertDblEquals(tc, limit.size, currentSize - newOrderC.shares, 0.0);
-    CuAssertIntEquals(tc, limit.orderCount, 0);
+    CuAssertDblEquals(tc, 0.0, limit.totalVolume, 0.0);
+    CuAssertDblEquals(tc, 0.0, limit.size, 0.0);
+    CuAssertIntEquals(tc, 0, limit.orderCount);
 
     // // // //
     // Pop # 4
     // // // //
     isPopped = popOrder(ptr_limit);
-    CuAssertIntEquals(tc, isPopped, 0);
+    CuAssertIntEquals(tc, 0, isPopped);
 }
 
 /**
@@ -313,10 +300,10 @@ TestCreateRoot(CuTest *tc){
      * and no parent.
      */
     Limit *ptr_root = createRoot();
-    CuAssertPtrEquals(tc, ptr_root->parent, NULL);
+    CuAssertPtrEquals(tc, NULL, ptr_root->parent);
     CuAssertTrue(tc, isinf(ptr_root->limitPrice));
-    CuAssertPtrEquals(tc, ptr_root->leftChild, NULL);
-    CuAssertPtrEquals(tc, ptr_root->rightChild, NULL);
+    CuAssertPtrEquals(tc, NULL, ptr_root->leftChild);
+    CuAssertPtrEquals(tc, NULL, ptr_root->rightChild);
 }
 
 void
@@ -337,7 +324,7 @@ TestAddNewLimit(CuTest *tc){
      * Add the first limit. Assert it is added as the leftChild of root. Check its references after addition to root.
      */
     statusCode = addNewLimit(ptr_root, ptr_newLimitA);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitA);
     CuAssertPtrEquals(tc, ptr_root->rightChild->parent, ptr_root);
@@ -346,7 +333,7 @@ TestAddNewLimit(CuTest *tc){
       * Add the second limit. Assert it is added as root->leftChild->leftChild. Check references to parent.
       */
     statusCode = addNewLimit(ptr_root, ptr_newLimitB);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, ptr_newLimitB);
     CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild->parent, ptr_newLimitA);
@@ -355,7 +342,7 @@ TestAddNewLimit(CuTest *tc){
       * Add the third limit. Assert it is added as root->leftChild->rightChild. Check references to parent.
       */
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
 
     CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, ptr_newLimitC);
     CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild->parent, ptr_newLimitA);
@@ -363,7 +350,7 @@ TestAddNewLimit(CuTest *tc){
      * Add a duplicate limit and assert the returned status code is 0.
      */
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
 }
 
 /**
@@ -389,19 +376,19 @@ TestLimitExists(CuTest *tc){
     int statusCode = 0;
 
     statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     limit.limitPrice = 100;
     statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     limit.limitPrice = 200;
     statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     limit.limitPrice = 50;
     statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     limit.limitPrice = 500;
     statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
 }
 
 void
@@ -420,13 +407,13 @@ TestLimitIsRoot(CuTest *tc){
     int statusCode = 0;
 
     statusCode = limitIsRoot(ptr_newLimitA);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
     statusCode = limitIsRoot(ptr_newLimitB);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
     statusCode = limitIsRoot(ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
     statusCode = limitIsRoot(ptr_root);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
 }
 
 void
@@ -446,13 +433,13 @@ TestHasGrandpa(CuTest *tc){
     int statusCode = 0;
 
     statusCode = hasGrandpa(ptr_newLimitA);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
     statusCode = hasGrandpa(ptr_newLimitB);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     statusCode = hasGrandpa(ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     statusCode = hasGrandpa(ptr_root);
-    CuAssertIntEquals(tc, statusCode, 0);
+    CuAssertIntEquals(tc, 0, statusCode);
 }
 
 void
@@ -472,13 +459,13 @@ TestGetGrandpa(CuTest *tc){
     Limit *ptr_grandpa;
 
     ptr_grandpa = getGrandpa(ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_grandpa, NULL);
+    CuAssertPtrEquals(tc, NULL, ptr_grandpa);
     ptr_grandpa = getGrandpa(ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_grandpa, ptr_root);
+    CuAssertPtrEquals(tc, ptr_root, ptr_grandpa);
     ptr_grandpa = getGrandpa(ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_grandpa, ptr_root);
+    CuAssertPtrEquals(tc, ptr_root, ptr_grandpa);
     ptr_grandpa = getGrandpa(ptr_root);
-    CuAssertPtrEquals(tc, ptr_grandpa, NULL);
+    CuAssertPtrEquals(tc, NULL, ptr_grandpa);
 }
 
 void
@@ -498,13 +485,13 @@ TestGetMaximumLimit(CuTest *tc){
     Limit *ptr_retValue;
 
     ptr_retValue = getMaximumLimit(ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_retValue);
     ptr_retValue = getMaximumLimit(ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_retValue);
     ptr_retValue = getMaximumLimit(ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_retValue, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_retValue);
     ptr_retValue = getMaximumLimit(ptr_root);
-    CuAssertPtrEquals(tc,ptr_retValue, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_retValue);
 }
 
 void
@@ -645,14 +632,14 @@ TestRemoveLimit(CuTest *tc){
     // Remove first child
     statusCode = removeLimit(ptr_newLimitB);
     CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, NULL);
-    CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, NULL,  ptr_root->rightChild->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild->rightChild);
 
     // Remove second child
     statusCode = removeLimit(ptr_newLimitC);
     CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, NULL);
+    CuAssertPtrEquals(tc, NULL, ptr_root->rightChild->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_root->rightChild->leftChild);
 
     /**
      * TestCase2: Remove a limit which has a single child and parent
@@ -664,11 +651,11 @@ TestRemoveLimit(CuTest *tc){
 
     statusCode = removeLimit(ptr_newLimitA);
     CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent->leftChild, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitB->parent->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->parent);
 
 
 
@@ -686,11 +673,11 @@ TestRotateLL(CuTest *tc){
     int statusCode = 0;
 
     statusCode = addNewLimit(ptr_root, ptr_newLimitA);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     statusCode = addNewLimit(ptr_root, ptr_newLimitB);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
 
     /**
      * Assert that all references are correctly updated and the pointers are correct.
@@ -698,19 +685,19 @@ TestRotateLL(CuTest *tc){
 
     rotateLeftLeft(ptr_newLimitA);
 
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitB->rightChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitC->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitC->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitA->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_root->rightChild);
 }
 
 void
@@ -724,11 +711,11 @@ TestRotateLR(CuTest *tc){
     int statusCode = 0;
 
     statusCode = addNewLimit(ptr_root, ptr_newLimitA);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     statusCode = addNewLimit(ptr_root, ptr_newLimitB);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
     statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 1);
+    CuAssertIntEquals(tc, 1, statusCode);
 
     /**
      * Assert that all references are correctly updated and the pointers are correct.
@@ -736,19 +723,19 @@ TestRotateLR(CuTest *tc){
 
     rotateLeftRight(ptr_newLimitA);
 
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitC->rightChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitC->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitA->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild);
 }
 
 void
@@ -770,19 +757,19 @@ TestRotateRR(CuTest *tc){
 
     rotateRightRight(ptr_newLimitA);
 
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitB->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->rightChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitC->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitC->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitA->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitB);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_root->rightChild);
 }
 
 void
@@ -808,19 +795,19 @@ TestRotateRL(CuTest *tc){
 
     rotateRightLeft(ptr_newLimitA);
 
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitA);
-    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitC->rightChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitC->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitA->parent, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitA->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitA->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitA->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitA->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, NULL);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->leftChild);
 
-    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild);
 }
 
 void
