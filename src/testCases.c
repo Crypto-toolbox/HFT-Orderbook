@@ -16,6 +16,7 @@
 Limit*
 createDummyLimit(float price){
     Limit *ptr_newLimit = malloc(sizeof(Limit));
+    initLimit(ptr_newLimit);
     ptr_newLimit->limitPrice = price;
     return (ptr_newLimit);
 }
@@ -48,6 +49,7 @@ void
 TestOrderPushing(CuTest *tc){
     Limit limit;
     Limit *ptr_limit = &limit;
+    initLimit(ptr_limit);
     limit.limitPrice = 1000.0;
 
 
@@ -57,10 +59,11 @@ TestOrderPushing(CuTest *tc){
      */
     Order newOrderA;
     Order *ptr_newOrderA = &newOrderA;
+    initOrder(ptr_newOrderA);
     newOrderA.limit = 1000.0;
     newOrderA.shares = 10;
     newOrderA.buyOrSell = 0;
-    newOrderA.tid = 1234;
+    newOrderA.tid = "1234";
 
     float expected_volume = 0.0;
     float expected_size = 0;
@@ -92,10 +95,11 @@ TestOrderPushing(CuTest *tc){
      */
     Order newOrderB;
     Order *ptr_newOrderB = &newOrderB;
+    initOrder(ptr_newOrderB);
     newOrderB.limit = 1000.0;
     newOrderB.shares = 20;
     newOrderB.buyOrSell = 0;
-    newOrderB.tid = 1235;
+    newOrderB.tid = "1235";
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderB);
     CuAssertIntEquals(tc, returnCode, 1);
@@ -123,10 +127,11 @@ TestOrderPushing(CuTest *tc){
      */
     Order newOrderC;
     Order *ptr_newOrderC = &newOrderC;
+    initOrder(ptr_newOrderC);
     newOrderC.limit = 1000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = 1236;
+    newOrderC.tid = "1236";
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderC);
     CuAssertIntEquals(tc, returnCode, 1);
@@ -157,10 +162,11 @@ TestOrderPushing(CuTest *tc){
      */
     Order newOrderD;
     Order *ptr_newOrderD = &newOrderD;
+    initOrder(ptr_newOrderD);
     newOrderC.limit = 2000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = 1236;
+    newOrderC.tid = "1236";
     returnCode = pushOrder(ptr_limit, ptr_newOrderD);
     CuAssertIntEquals(tc, returnCode, 0);
 }
@@ -169,28 +175,32 @@ void
 TestOrderPopping(CuTest *tc){
     Limit limit;
     Limit *ptr_limit = &limit;
+    initLimit(ptr_limit);
     limit.limitPrice = 1000.0;
 
     Order newOrderA;
     Order *ptr_newOrderA = &newOrderA;
+    initOrder(ptr_newOrderA);
     newOrderA.limit = 1000.0;
     newOrderA.shares = 10;
     newOrderA.buyOrSell = 0;
-    newOrderA.tid = 1234;
+    newOrderA.tid = "1234";
 
     Order newOrderB;
     Order *ptr_newOrderB = &newOrderB;
+    initOrder(ptr_newOrderB);
     newOrderB.limit = 1000.0;
     newOrderB.shares = 20;
     newOrderB.buyOrSell = 0;
-    newOrderB.tid = 1235;
+    newOrderB.tid = "1235";
 
     Order newOrderC;
     Order *ptr_newOrderC = &newOrderC;
+    initOrder(ptr_newOrderC);
     newOrderC.limit = 1000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = 1236;
+    newOrderC.tid = "1236";
 
     pushOrder(ptr_limit, ptr_newOrderA);
     pushOrder(ptr_limit, ptr_newOrderB);
@@ -298,17 +308,9 @@ TestAddNewLimit(CuTest *tc){
      */
     Limit *ptr_root = createRoot();
 
-    Limit newLimitA;
-    Limit *ptr_newLimitA = &newLimitA;
-    newLimitA.limitPrice = 100;
-
-    Limit newLimitB;
-    Limit *ptr_newLimitB = &newLimitB;
-    newLimitB.limitPrice = 50;
-
-    Limit newLimitC;
-    Limit *ptr_newLimitC = &newLimitC;
-    newLimitC.limitPrice = 200;
+    Limit *ptr_newLimitA = createDummyLimit(100.0);
+    Limit *ptr_newLimitB = createDummyLimit(50.0);
+    Limit *ptr_newLimitC = createDummyLimit(200.0);
 
     int statusCode = 0;
 
