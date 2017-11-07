@@ -1,1 +1,0 @@
-/usr/bin/cc  -g    CMakeFiles/HFT_Orderbook.dir/src/funcs.c.o CMakeFiles/HFT_Orderbook.dir/src/datastructs.c.o CMakeFiles/HFT_Orderbook.dir/src/main.c.o CMakeFiles/HFT_Orderbook.dir/src/CuTest.c.o CMakeFiles/HFT_Orderbook.dir/src/testCases.c.o  -o HFT_Orderbook -rdynamic 
