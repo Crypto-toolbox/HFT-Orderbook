@@ -606,20 +606,20 @@ TestReplaceLimitInParent(CuTest *tc){
      */
 
     replaceLimitInParent(ptr_newLimitA, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitB->leftChild, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitB->rightChild, NULL);
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->leftChild);
+    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->rightChild);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild);
 
     free(ptr_root);
     ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
 
     replaceLimitInParent(ptr_newLimitA, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitC->leftChild, ptr_newLimitD);
-    CuAssertPtrEquals(tc, ptr_newLimitC->rightChild, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitC->parent, ptr_root);
-    CuAssertPtrEquals(tc, ptr_newLimitB->parent, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitD->parent, ptr_newLimitC);
+    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_newLimitC->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitC->rightChild);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitC->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitD->parent);
 }
 
 void
