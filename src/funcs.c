@@ -19,9 +19,9 @@ initOrder(Order *order){
     order->limit = 0.0;
     order->entryTime = 0.0;
     order->eventTime = 0.0;
-    order->Order = NULL;
-    order->Order = NULL;
-    order->Limit = NULL;
+    order->nextOrder = NULL;
+    order->prevOrder = NULL;
+    order->parentLimit = NULL;
 };
 
 void
