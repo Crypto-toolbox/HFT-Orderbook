@@ -455,7 +455,14 @@ getMinimumLimit(Limit *limit){
      * Return the left-most limit struct for the given limit
      * tree / branch.
      */
-    Limit *ptr_minimum = limit;
+    Limit *ptr_minimum;
+    if(limitIsRoot(limit)){
+        ptr_minimum = limit->rightChild;
+    }
+    else{
+        ptr_minimum = limit;
+    }
+
     while(ptr_minimum->leftChild != NULL){
         ptr_minimum = ptr_minimum->leftChild;
     }
