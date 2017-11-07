@@ -7,6 +7,42 @@
 #include <stdlib.h>
 #include "hftlob.h"
 
+/**
+ * Init functions for structs
+ */
+
+void 
+initOrder(Order *order){
+    order->tid = "NULL";
+    order->buyOrSell = 0;
+    order->shares = 0.0;
+    order->limit = 0.0;
+    order->entryTime = 0.0;
+    order->eventTime = 0.0;
+    order->Order = NULL;
+    order->Order = NULL;
+    order->Limit = NULL;
+};
+
+void
+initLimit(Limit *limit){
+    limit->limitPrice = 0.0;
+    limit->size = 0.0;
+    limit->totalVolume = 0.0;
+    limit->orderCount = 0;
+    limit->parent = NULL;
+    limit->leftChild = NULL;
+    limit->rightChild = NULL;
+    limit->headOrder = NULL;
+    limit->tailOrder = NULL;
+};
+
+void
+initQueueItem(QueueItem *item){
+    item->limit = NULL;
+    item->previous = NULL;
+}
+
 /*
 Functions for Order related operations
 */
