@@ -295,7 +295,70 @@ TestOrderPopping(CuTest *tc){
 
 void
 TestRemoveOrder(CuTest *tc){
-    CuFail(tc, "Finish this test!");
+    Limit *ptr_limit = createDummyLimit(1000.0);
+    /**
+     * Push a single order to an empty limit and check that both tail and head point towards it.
+     * Also check that the inserted Order has the ptr set in its Order.parentLimit attribute.
+     */
+    Order newOrderA;
+    Order *ptr_newOrderA = &newOrderA;
+    initOrder(ptr_newOrderA);
+    newOrderA.limit = 1000.0;
+    newOrderA.shares = 10;
+    newOrderA.buyOrSell = 0;
+    newOrderA.tid = "1234";
+
+    Order newOrderB;
+    Order *ptr_newOrderB = &newOrderB;
+    initOrder(ptr_newOrderB);
+    newOrderB.limit = 1000.0;
+    newOrderB.shares = 20;
+    newOrderB.buyOrSell = 0;
+    newOrderB.tid = "1235";
+
+    Order newOrderC;
+    Order *ptr_newOrderC = &newOrderC;
+    initOrder(ptr_newOrderC);
+    newOrderC.limit = 1000.0;
+    newOrderC.shares = 30;
+    newOrderC.buyOrSell = 0;
+    newOrderC.tid = "1236";
+
+    int returnCode = 0;
+
+    returnCode = pushOrder(ptr_limit, ptr_newOrderA);
+    CuAssertIntEquals(tc, returnCode, 1);
+
+    returnCode = pushOrder(ptr_limit, ptr_newOrderB);
+    CuAssertIntEquals(tc, 1, returnCode);
+
+    returnCode = pushOrder(ptr_limit, ptr_newOrderC);
+    CuAssertIntEquals(tc, 1, returnCode);
+
+    /**
+     * Assert that removing an order from the middle works correctly and all references are updated
+     * correctly.
+     */
+    returnCode = removeOrder(ptr_newOrderB);
+    CuAssertIntEquals(tc, 1, returnCode);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_newOrderC->nextOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderC->prevOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderA, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_newOrderA->prevOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderA->nextOrder);
+
+    returnCode = removeOrder(ptr_newOrderA);
+    CuAssertIntEquals(tc, 1, returnCode);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->tailOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderC->prevOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderC->nextOrder);
+
+    returnCode = removeOrder(ptr_newOrderC);
+    CuAssertIntEquals(tc, 1, returnCode);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder);
+    CuAssertPtrEquals(tc, NULL, ptr_limit->tailOrder);
 }
 
 /**
@@ -665,7 +728,7 @@ TestRemoveLimit(CuTest *tc){
     Limit *ptr_LimitC = createDummyLimit(50.0);
     Limit *ptr_LimitD = createDummyLimit(45.0);
     Limit *ptr_rootB = createDummyTree(ptr_LimitA, ptr_LimitB, ptr_LimitC, ptr_LimitD);
-    printf("Root %p, A %p, B %p, C %p, D %p\n", ptr_rootB, ptr_LimitA, ptr_LimitB, ptr_LimitC, ptr_LimitD);
+
     statusCode = removeLimit(ptr_LimitA);
     CuAssertIntEquals(tc, 1, statusCode);
     CuAssertPtrEquals(tc, ptr_LimitB, ptr_rootB->rightChild);
