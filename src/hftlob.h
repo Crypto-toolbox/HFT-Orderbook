@@ -77,7 +77,7 @@ pushOrder(Limit *limit, Order *new_order);
 Order*
 popOrder(Limit *limit);
 
-Order*
+int
 removeOrder(Order *order);
 
 /**
