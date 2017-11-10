@@ -244,8 +244,36 @@ removeLimit(Limit *limit){
     if(limit->leftChild != NULL && limit->rightChild != NULL){
         /*Limit has two children*/
         ptr_successor = getMinimumLimit(limit->rightChild);
-        copyLimit(ptr_successor, limit);
-        removeLimit(ptr_successor);
+        Limit *parent = ptr_successor->parent;
+        Limit *leftChild = ptr_successor->rightChild;
+        Limit *rightChild = ptr_successor->leftChild;
+
+
+        if(limit->leftChild != ptr_successor){
+            ptr_successor->leftChild = limit->leftChild;
+        }
+        else{
+            ptr_successor->leftChild = NULL;
+        }
+
+        if(limit->rightChild != ptr_successor){
+            ptr_successor->rightChild = limit->rightChild;
+        }
+        else{
+            ptr_successor->rightChild = NULL;
+        }
+        limit->leftChild = leftChild;
+        limit->rightChild = rightChild;
+        ptr_successor->parent = limit->parent;
+        if(ptr_successor->parent->rightChild==limit){
+            ptr_successor->parent->rightChild = ptr_successor;
+        }
+        else if(ptr_successor->parent->leftChild==limit){
+            ptr_successor->parent->leftChild = ptr_successor;
+        }
+        limit->parent = parent;
+
+        removeLimit(limit);
     }
     else if(limit->leftChild != NULL && limit->rightChild == NULL){
         /*Limit has only left child*/
@@ -547,13 +575,13 @@ getBalanceFactor(Limit *limit){
 
 void
 copyLimit(Limit *ptr_src, Limit *ptr_tar){
+    /**
+     * Copy the values of src limit to tar limit.
+     */
     ptr_tar->limitPrice = ptr_src->limitPrice;
     ptr_tar->size = ptr_src->size;
     ptr_tar->totalVolume = ptr_src->totalVolume;
     ptr_tar->orderCount = ptr_src->orderCount;
-    ptr_tar->parent = ptr_src->parent;
-    ptr_tar->leftChild = ptr_src->leftChild;
-    ptr_tar->rightChild = ptr_src->rightChild;
     ptr_tar->headOrder = ptr_src->headOrder;
     ptr_tar->tailOrder = ptr_src->tailOrder;
     Order *ptr_order = ptr_tar->headOrder;

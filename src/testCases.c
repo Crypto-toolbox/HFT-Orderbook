@@ -665,10 +665,11 @@ TestRemoveLimit(CuTest *tc){
     Limit *ptr_LimitC = createDummyLimit(50.0);
     Limit *ptr_LimitD = createDummyLimit(45.0);
     Limit *ptr_rootB = createDummyTree(ptr_LimitA, ptr_LimitB, ptr_LimitC, ptr_LimitD);
-
+    printf("Root %p, A %p, B %p, C %p, D %p\n", ptr_rootB, ptr_LimitA, ptr_LimitB, ptr_LimitC, ptr_LimitD);
     statusCode = removeLimit(ptr_LimitA);
     CuAssertIntEquals(tc, 1, statusCode);
     CuAssertPtrEquals(tc, ptr_LimitB, ptr_rootB->rightChild);
+    CuAssertPtrEquals(tc, NULL, ptr_rootB->rightChild->rightChild);
     CuAssertPtrEquals(tc, ptr_LimitC, ptr_rootB->rightChild->leftChild);
     CuAssertPtrEquals(tc, ptr_LimitD, ptr_rootB->rightChild->leftChild->leftChild);
 }
