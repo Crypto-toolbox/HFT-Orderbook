@@ -77,6 +77,9 @@ pushOrder(Limit *limit, Order *new_order);
 Order*
 popOrder(Limit *limit);
 
+Order*
+removeOrder(Order *order);
+
 /**
  * BINARY SEARCH TREE FUNCTIONS
  */
