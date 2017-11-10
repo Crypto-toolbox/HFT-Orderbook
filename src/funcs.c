@@ -117,18 +117,22 @@ removeOrder(Order *order){
      * Remove the order from where it is at.
      */
     if(order->parentLimit->headOrder == order && order->parentLimit->tailOrder == order){
+        /* Head and Tail are identical, set both to NULL and be done with it.*/
         order->parentLimit->headOrder = NULL;
-        order->parentLimit->headOrder = NULL;
+        order->parentLimit->tailOrder = NULL;
     }
     else if(order->prevOrder != NULL && order->nextOrder != NULL){
+        /* If Its in the middle, update reference for previous and next order and be done.*/
         order->prevOrder->nextOrder = order->nextOrder;
         order->nextOrder->prevOrder = order->prevOrder;
     }
-    else if(order->nextOrder == NULL){
+    else if(order->nextOrder == NULL && order->parentLimit->tailOrder == order){
+        /*This is the Tail - replace the tail with previous Order*/
         order->prevOrder->nextOrder = NULL;
         order->parentLimit->tailOrder = order->prevOrder;
     }
-    else if(order->prevOrder == NULL){
+    else if(order->prevOrder == NULL && order->parentLimit->headOrder == order){
+        /*This is the Head - replace the head with the next order*/
         order->nextOrder->prevOrder = NULL;
         order->parentLimit->headOrder = order->nextOrder;
     }
