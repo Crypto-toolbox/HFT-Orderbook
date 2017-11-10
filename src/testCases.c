@@ -573,14 +573,12 @@ TestGetBalanceFactor(CuTest *tc){
     
     int balanceFactor = 0;
 
-    balanceFactor = getBalanceFactor(ptr_root);
-    CuAssertIntEquals(tc, 3, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitA);
     CuAssertIntEquals(tc, -1, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitB);
-    CuAssertIntEquals(tc, 1, balanceFactor);
-    balanceFactor = getBalanceFactor(ptr_newLimitC);
     CuAssertIntEquals(tc, 0, balanceFactor);
+    balanceFactor = getBalanceFactor(ptr_newLimitC);
+    CuAssertIntEquals(tc, -1, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitD);
     CuAssertIntEquals(tc, 0, balanceFactor);
 }
@@ -602,20 +600,8 @@ TestReplaceLimitInParent(CuTest *tc){
      */
 
     replaceLimitInParent(ptr_newLimitA, ptr_newLimitB);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->leftChild);
-    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->rightChild);
-    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->parent);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild);
-
-    free(ptr_root);
-    ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
-
-    replaceLimitInParent(ptr_newLimitA, ptr_newLimitC);
-    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_newLimitC->leftChild);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitC->rightChild);
-    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitC->parent);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->parent);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitD->parent);
+    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitB->parent);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_root->rightChild);
 }
 
 void

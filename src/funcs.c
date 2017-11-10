@@ -207,11 +207,14 @@ replaceLimitInParent(Limit *limit, Limit *newLimit) {
      * Pop out the given limit and replace all pointers to it from limit->parent
      * to point to the newLimit.
      *
+     * Serve all cases : Node has no children, node has one child, node has two children.
+     *
      * Python Reference code here:
      *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
+
     if(!limitIsRoot(limit)){
-        if(limit==limit->parent->leftChild){
+        if(limit==limit->parent->leftChild && !limitIsRoot(limit->parent)){
             limit->parent->leftChild = newLimit;
         }
         else{
@@ -489,11 +492,11 @@ getHeight(Limit *limit){
      */
 
      if(limit == NULL){
-        return -1;
+        return 0;
      }
 
-    int height = -1;
-    int qsize = -1;
+    int height = -1; /*Set to -1; if limit has no children, this will end up being 0*/
+    int qsize = 0;
 
     Queue *ptr_queue = malloc(sizeof(Queue));
     initQueue(ptr_queue);
