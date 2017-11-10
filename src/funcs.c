@@ -492,7 +492,7 @@ getHeight(Limit *limit){
      */
 
      if(limit == NULL){
-        return 0;
+        return -1;
      }
 
     int height = -1; /*Set to -1; if limit has no children, this will end up being 0*/
@@ -530,8 +530,8 @@ getBalanceFactor(Limit *limit){
      * subtracting the left children's height from the right children's
      * height.
      */
-    int leftHeight = 0;
-    int rightHeight = 0;
+    int leftHeight = -1;
+    int rightHeight = -1;
     if(limit->rightChild!=NULL){
         rightHeight = getHeight(limit->rightChild);
     }

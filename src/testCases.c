@@ -581,6 +581,22 @@ TestGetBalanceFactor(CuTest *tc){
     CuAssertIntEquals(tc, -1, balanceFactor);
     balanceFactor = getBalanceFactor(ptr_newLimitD);
     CuAssertIntEquals(tc, 0, balanceFactor);
+
+    free(ptr_root);
+    ptr_newLimitA->limitPrice = 100.0;
+    ptr_newLimitB->limitPrice =200.0;
+    ptr_newLimitC->limitPrice = 250.0;
+    ptr_newLimitD->limitPrice = 45.0;
+    ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+
+    balanceFactor = getBalanceFactor(ptr_newLimitA);
+    CuAssertIntEquals(tc, 1, balanceFactor);
+    balanceFactor = getBalanceFactor(ptr_newLimitB);
+    CuAssertIntEquals(tc, 1, balanceFactor);
+    balanceFactor = getBalanceFactor(ptr_newLimitC);
+    CuAssertIntEquals(tc, 0, balanceFactor);
+    balanceFactor = getBalanceFactor(ptr_newLimitD);
+    CuAssertIntEquals(tc, 0, balanceFactor);
 }
 
 /**
