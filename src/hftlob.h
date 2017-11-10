@@ -141,6 +141,8 @@ getHeight(Limit *limit);
 int
 getBalanceFactor(Limit *limit);
 
+void
+copyLimit(Limit *ptr_src, Limit *ptr_tar);
 
 /**
  * CuTest Functions

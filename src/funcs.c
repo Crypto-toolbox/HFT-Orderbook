@@ -241,21 +241,24 @@ removeLimit(Limit *limit){
     }
 
     Limit *ptr_successor = limit;
-    while(limit->leftChild!=NULL && limit->rightChild!=NULL){
+    if(limit->leftChild != NULL && limit->rightChild != NULL){
+        /*Limit has two children*/
         ptr_successor = getMinimumLimit(limit->rightChild);
+        copyLimit(ptr_successor, limit);
+        removeLimit(ptr_successor);
     }
-
-    if(limit->leftChild!=NULL){
-        replaceLimitInParent(limit, ptr_successor->leftChild);
+    else if(limit->leftChild != NULL && limit->rightChild == NULL){
+        /*Limit has only left child*/
+        replaceLimitInParent(limit, limit->leftChild);
     }
-    else if(limit->rightChild!=NULL){
-        replaceLimitInParent(limit, ptr_successor->rightChild);
+    else if(limit->leftChild != NULL && limit->rightChild == NULL){
+        /*Limit has only left child*/
+        replaceLimitInParent(limit, limit->rightChild);
     }
     else{
+        /*Limit has no children*/
         replaceLimitInParent(limit, NULL);
     }
-
-    free(limit);
     return 1;
 }
 
@@ -542,5 +545,24 @@ getBalanceFactor(Limit *limit){
     return rightHeight - leftHeight;
 }
 
+void
+copyLimit(Limit *ptr_src, Limit *ptr_tar){
+    ptr_tar->limitPrice = ptr_src->limitPrice;
+    ptr_tar->size = ptr_src->size;
+    ptr_tar->totalVolume = ptr_src->totalVolume;
+    ptr_tar->orderCount = ptr_src->orderCount;
+    ptr_tar->parent = ptr_src->parent;
+    ptr_tar->leftChild = ptr_src->leftChild;
+    ptr_tar->rightChild = ptr_src->rightChild;
+    ptr_tar->headOrder = ptr_src->headOrder;
+    ptr_tar->tailOrder = ptr_src->tailOrder;
+    Order *ptr_order = ptr_tar->headOrder;
 
+    while(ptr_order != NULL){
+        ptr_order->parentLimit = ptr_tar;
+        if(ptr_order != NULL){
+            ptr_order = ptr_order->nextOrder;
+        }
+    }
+}
 
