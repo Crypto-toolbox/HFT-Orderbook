@@ -639,38 +639,38 @@ TestRemoveLimit(CuTest *tc){
 
     int statusCode = 0;
 
-
-    // Remove first child
     statusCode = removeLimit(ptr_newLimitB);
-    CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, NULL,  ptr_root->rightChild->leftChild);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild->rightChild);
+    CuAssertIntEquals(tc, 1, statusCode);
+    CuAssertPtrEquals(tc, NULL,  ptr_root->rightChild->rightChild);
+    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild->leftChild);
 
-    // Remove second child
-    statusCode = removeLimit(ptr_newLimitC);
-    CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, NULL, ptr_root->rightChild->rightChild);
-    CuAssertPtrEquals(tc, NULL, ptr_root->rightChild->leftChild);
 
     /**
      * TestCase2: Remove a limit which has a single child and parent
      */
 
-    // Reset the test BST
+    statusCode = removeLimit(ptr_newLimitC);
+    CuAssertIntEquals(tc, 1, statusCode);
+    CuAssertPtrEquals(tc, NULL, ptr_root->rightChild->rightChild);
+    CuAssertPtrEquals(tc, ptr_newLimitD, ptr_root->rightChild->leftChild);
+
+    /**
+     * TestCase3: Remove a limit with two children and a parent.
+     */
+
+    /* Reset the BST. */
     free(ptr_root);
-    ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
+    Limit *ptr_LimitA = createDummyLimit(100.0);
+    Limit *ptr_LimitB = createDummyLimit(200.0);
+    Limit *ptr_LimitC = createDummyLimit(50.0);
+    Limit *ptr_LimitD = createDummyLimit(45.0);
+    Limit *ptr_rootB = createDummyTree(ptr_LimitA, ptr_LimitB, ptr_LimitC, ptr_LimitD);
 
-    statusCode = removeLimit(ptr_newLimitA);
-    CuAssertIntEquals(tc, statusCode, 1);
-    CuAssertPtrEquals(tc, ptr_root, ptr_newLimitB->parent);
-    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitB->parent->leftChild);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitB->rightChild);
-    CuAssertPtrEquals(tc, NULL, ptr_newLimitB->leftChild);
-    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->parent);
-
-
-
-    CuFail(tc, "Finish this test!\n");
+    statusCode = removeLimit(ptr_LimitA);
+    CuAssertIntEquals(tc, 1, statusCode);
+    CuAssertPtrEquals(tc, ptr_LimitB, ptr_rootB->rightChild);
+    CuAssertPtrEquals(tc, ptr_LimitC, ptr_rootB->rightChild->leftChild);
+    CuAssertPtrEquals(tc, ptr_LimitD, ptr_rootB->rightChild->leftChild->leftChild);
 }
 
 void
