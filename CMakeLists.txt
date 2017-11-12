@@ -5,8 +5,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
         src/hftlob.h
-        src/funcs.c
         src/datastructs.c
+        src/limits.c
+        src/orders.c
+        src/bst.c
+        src/utils.c
         src/main.c
         src/CuTest.h
         src/CuTest.c
