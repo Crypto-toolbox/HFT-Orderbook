@@ -60,8 +60,9 @@ rotateLeftLeft(Limit *limit) {
     }
     child->parent = limit->parent;
     limit->parent = child;
+    Limit* tmp_ptr = child->rightChild;
     child->rightChild = limit;
-    limit->leftChild = child->rightChild;
+    limit->leftChild = tmp_ptr;
     return;
 }
 
