@@ -12,6 +12,45 @@ by being more descriptive.
 #include "hftlob.h"
 
 
+void
+initOrder(Order *order){
+    order->tid = NULL;
+    order->buyOrSell = -1;
+    order->shares = 0;
+    order->limit = 0;
+    order->entryTime = 0;
+    order->eventTime = 0;
+    order->nextOrder = NULL;
+    order->prevOrder = NULL;
+    order->parentLimit = NULL;
+};
+
+void
+initLimit(Limit *limit){
+    limit->limitPrice = 0;
+    limit->size = 0;
+    limit->totalVolume = 0;
+    limit->orderCount = 0;
+    limit->parent = NULL;
+    limit->leftChild = NULL;
+    limit->rightChild = NULL;
+    limit->headOrder = NULL;
+    limit->headOrder = NULL;
+};
+
+void
+initQueueItem(QueueItem *item){
+    item->limit = NULL;
+    item->previous = NULL;
+};
+
+void
+initQueue(Queue *q){
+    q->head = NULL;
+    q->tail = NULL;
+    q->size = 0;
+};
+
 int
 limitExists(Limit *root, Limit *limit){
     /**
