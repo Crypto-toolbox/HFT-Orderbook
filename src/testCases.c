@@ -871,8 +871,8 @@ TestRotateRL(CuTest *tc){
     rotateRightLeft(ptr_newLimitA);
 
     CuAssertPtrEquals(tc, ptr_root, ptr_newLimitC->parent);
-    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitC->rightChild);
-    CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitC->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitA, ptr_newLimitC->leftChild);
+    CuAssertPtrEquals(tc, ptr_newLimitB, ptr_newLimitC->rightChild);
 
     CuAssertPtrEquals(tc, ptr_newLimitC, ptr_newLimitA->parent);
     CuAssertPtrEquals(tc, NULL, ptr_newLimitA->rightChild);

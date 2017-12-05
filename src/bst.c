@@ -115,9 +115,15 @@ rotateRightLeft(Limit *limit){
     Limit *grandChild = limit->rightChild->leftChild;
     child->parent = grandChild;
     grandChild->parent = limit;
-    child->leftChild = grandChild->rightChild;
+    Limit* tmp_b_ptr = child->rightChild;
+    Limit* tmp_c_ptr = grandChild->rightChild;
+    Limit* tmp_d_ptr = grandChild->leftChild;
     limit->rightChild = grandChild;
     grandChild->rightChild = child;
+    grandChild->leftChild = tmp_d_ptr;
+    child->leftChild = tmp_c_ptr;
+    child->rightChild = tmp_b_ptr;
+
     rotateRightRight(limit);
     return;
 }
