@@ -138,6 +138,30 @@ src/CuTest.c.s:
 	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/CuTest.c.s
 .PHONY : src/CuTest.c.s
 
+src/bst.o: src/bst.c.o
+.PHONY : src/bst.o
+
+# target to build an object file
+src/bst.c.o:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/bst.c.o
+.PHONY : src/bst.c.o
+
+src/bst.i: src/bst.c.i
+.PHONY : src/bst.i
+
+# target to preprocess a source file
+src/bst.c.i:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/bst.c.i
+.PHONY : src/bst.c.i
+
+src/bst.s: src/bst.c.s
+.PHONY : src/bst.s
+
+# target to generate assembly for a file
+src/bst.c.s:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/bst.c.s
+.PHONY : src/bst.c.s
+
 src/datastructs.o: src/datastructs.c.o
 .PHONY : src/datastructs.o
 
@@ -162,29 +186,29 @@ src/datastructs.c.s:
 	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/datastructs.c.s
 .PHONY : src/datastructs.c.s
 
-src/funcs.o: src/funcs.c.o
-.PHONY : src/funcs.o
+src/limits.o: src/limits.c.o
+.PHONY : src/limits.o
 
 # target to build an object file
-src/funcs.c.o:
-	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/funcs.c.o
-.PHONY : src/funcs.c.o
+src/limits.c.o:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/limits.c.o
+.PHONY : src/limits.c.o
 
-src/funcs.i: src/funcs.c.i
-.PHONY : src/funcs.i
+src/limits.i: src/limits.c.i
+.PHONY : src/limits.i
 
 # target to preprocess a source file
-src/funcs.c.i:
-	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/funcs.c.i
-.PHONY : src/funcs.c.i
+src/limits.c.i:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/limits.c.i
+.PHONY : src/limits.c.i
 
-src/funcs.s: src/funcs.c.s
-.PHONY : src/funcs.s
+src/limits.s: src/limits.c.s
+.PHONY : src/limits.s
 
 # target to generate assembly for a file
-src/funcs.c.s:
-	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/funcs.c.s
-.PHONY : src/funcs.c.s
+src/limits.c.s:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/limits.c.s
+.PHONY : src/limits.c.s
 
 src/main.o: src/main.c.o
 .PHONY : src/main.o
@@ -210,6 +234,30 @@ src/main.c.s:
 	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/main.c.s
 .PHONY : src/main.c.s
 
+src/orders.o: src/orders.c.o
+.PHONY : src/orders.o
+
+# target to build an object file
+src/orders.c.o:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/orders.c.o
+.PHONY : src/orders.c.o
+
+src/orders.i: src/orders.c.i
+.PHONY : src/orders.i
+
+# target to preprocess a source file
+src/orders.c.i:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/orders.c.i
+.PHONY : src/orders.c.i
+
+src/orders.s: src/orders.c.s
+.PHONY : src/orders.s
+
+# target to generate assembly for a file
+src/orders.c.s:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/orders.c.s
+.PHONY : src/orders.c.s
+
 src/testCases.o: src/testCases.c.o
 .PHONY : src/testCases.o
 
@@ -234,6 +282,30 @@ src/testCases.c.s:
 	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/testCases.c.s
 .PHONY : src/testCases.c.s
 
+src/utils.o: src/utils.c.o
+.PHONY : src/utils.o
+
+# target to build an object file
+src/utils.c.o:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/utils.c.o
+.PHONY : src/utils.c.o
+
+src/utils.i: src/utils.c.i
+.PHONY : src/utils.i
+
+# target to preprocess a source file
+src/utils.c.i:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/utils.c.i
+.PHONY : src/utils.c.i
+
+src/utils.s: src/utils.c.s
+.PHONY : src/utils.s
+
+# target to generate assembly for a file
+src/utils.c.s:
+	$(MAKE) -f CMakeFiles/HFT_Orderbook.dir/build.make CMakeFiles/HFT_Orderbook.dir/src/utils.c.s
+.PHONY : src/utils.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -246,18 +318,27 @@ help:
 	@echo "... src/CuTest.o"
 	@echo "... src/CuTest.i"
 	@echo "... src/CuTest.s"
+	@echo "... src/bst.o"
+	@echo "... src/bst.i"
+	@echo "... src/bst.s"
 	@echo "... src/datastructs.o"
 	@echo "... src/datastructs.i"
 	@echo "... src/datastructs.s"
-	@echo "... src/funcs.o"
-	@echo "... src/funcs.i"
-	@echo "... src/funcs.s"
+	@echo "... src/limits.o"
+	@echo "... src/limits.i"
+	@echo "... src/limits.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/orders.o"
+	@echo "... src/orders.i"
+	@echo "... src/orders.s"
 	@echo "... src/testCases.o"
 	@echo "... src/testCases.i"
 	@echo "... src/testCases.s"
+	@echo "... src/utils.o"
+	@echo "... src/utils.i"
+	@echo "... src/utils.s"
 .PHONY : help
 
 
