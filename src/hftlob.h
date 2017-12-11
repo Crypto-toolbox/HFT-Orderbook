@@ -14,6 +14,7 @@ typedef struct Order{
     struct Order *nextOrder;
     struct Order *prevOrder;
     struct Limit *parentLimit;
+    int exchangeId;
 } Order;
 
 typedef struct Limit{

@@ -23,6 +23,7 @@ initOrder(Order *order){
     order->nextOrder = NULL;
     order->prevOrder = NULL;
     order->parentLimit = NULL;
+    order->exchangeId = 0;
 };
 
 void
