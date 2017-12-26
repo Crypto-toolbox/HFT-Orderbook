@@ -51,7 +51,7 @@ class OrderTests(TestCase):
         self.assertEqual(lob.best_bid.orders.head.next_item, bid_order_2)
         self.assertEqual(lob.best_bid.orders.tail, bid_order_2)
         self.assertEqual(len(lob.best_bid), 2)
-
+        
     def test_removing_orders_works(self):
         lob = LimitOrderBook()
         bid_order = Order(uid=1, is_bid=True, size=5, price=100)
