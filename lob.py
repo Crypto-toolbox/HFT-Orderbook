@@ -119,6 +119,7 @@ Available at Archive.org's WayBackMachine:
 # Import Built-Ins
 import logging
 import time
+from itertools import islice
 # Import Third-Party
 
 # Import Homebrew
@@ -256,6 +257,24 @@ class LimitOrderBook:
             # to that price level
             self._orders[order.uid] = order
             self._price_levels[order.price].append(order)
+    
+    
+    def levels(self, depth=None):
+        """Returns the price levels as a dict {'bids': [bid1, ...], 'asks': [ask1, ...]}
+        
+        :param depth: Desired number of levels on each side to return.
+        :return:
+        """
+        levels_sorted = sorted(self._price_levels.keys())
+        bids_all = reversed([price_level for price_level in levels_sorted if price_level < self.best_ask.price])
+        bids = list(islice(bids_all, depth)) if depth else list(bids_all)
+        asks_all = (price_level for price_level in levels_sorted if price_level > self.best_bid.price)
+        asks = list(islice(asks_all, depth)) if depth else list(asks_all)
+        levels_dict = {
+            'bids' : [self._price_levels[price] for price in bids],
+            'asks' : [self._price_levels[price] for price in asks],
+            }
+        return levels_dict
 
 class LimitLevel:
     """AVL BST node.
