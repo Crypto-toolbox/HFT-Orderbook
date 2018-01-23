@@ -51,7 +51,7 @@ class OrderTests(TestCase):
         self.assertEqual(lob.best_bid.orders.head.next_item, bid_order_2)
         self.assertEqual(lob.best_bid.orders.tail, bid_order_2)
         self.assertEqual(len(lob.best_bid), 2)
-
+        
     def test_removing_orders_works(self):
         lob = LimitOrderBook()
         bid_order = Order(uid=1, is_bid=True, size=5, price=100)
@@ -86,5 +86,42 @@ class OrderTests(TestCase):
 
         self.assertNotIn(removed_bid_order_2.uid, lob._orders)
         self.assertNotIn(removed_bid_order_2.price, lob._price_levels)
-
-
+    
+    def load_book(self, lob):
+        orders = [
+            Order(uid=1, is_bid=True, size=5, price=100),
+            Order(uid=2, is_bid=True, size=5, price=95),
+            Order(uid=3, is_bid=True, size=5, price=90),
+            Order(uid=4, is_bid=False, size=5, price=200),
+            Order(uid=5, is_bid=False, size=5, price=205),
+            Order(uid=6, is_bid=False, size=5, price=210),
+            ]
+        for order in orders:
+             lob.process(order)
+    
+    def check_levels_format(self, levels):
+        self.assertIsInstance(levels, dict)
+        for side in ('bids', 'asks'):
+            self.assertIsInstance(levels[side], list)
+            for i, price_level in enumerate(levels[side]):
+                price = price_level.price
+                last_price = price if i < 1 else levels[side][i - 1].price
+                if side == 'bids':
+                    self.assertTrue(price <= last_price)
+                else:
+                    self.assertTrue(price >= last_price)
+        
+    def test_querying_levels_works(self):
+        lob = LimitOrderBook()
+        self.load_book(lob)
+        levels = lob.levels()
+        self.check_levels_format(levels)
+    
+    def test_querying_levels_limit_depth(self):
+        lob = LimitOrderBook()
+        self.load_book(lob)
+        levels = lob.levels(depth=2)
+        self.check_levels_format(levels)
+        for side in ('bids', 'asks'):
+            self.assertEqual(len(levels[side]), 2)
+        
