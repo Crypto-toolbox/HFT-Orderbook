@@ -208,10 +208,10 @@ class LimitOrderBook:
         # Remove Limit Level from self._price_levels and tree, if no orders are
         # left within that limit level
         try:
-            if len(self._price_levels[order.price]) == 0:
-                popped_limit_level = self._price_levels.pop(order.price)
+            if len(self._price_levels[popped_item.price]) == 0:
+                popped_limit_level = self._price_levels.pop(popped_item.price)
                 # Remove Limit Level from LimitLevelTree
-                if order.is_bid:
+                if popped_item.is_bid:
                     if popped_limit_level == self.best_bid:
                         if not isinstance(popped_limit_level.parent, LimitLevelTree):
                             self.best_bid = popped_limit_level.parent
