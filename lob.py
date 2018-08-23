@@ -285,8 +285,6 @@ class LimitLevel:
     method may be of interest (c-based implementations aside).
 
     Attributes:
-        value: value of the Node
-
         parent: Parent node of this Node
         is_root: Boolean, to determine if this Node is root
         left_child: Left child of this Node; Values smaller than price
@@ -303,7 +301,6 @@ class LimitLevel:
         """Initialize a Node() instance.
 
         :param order:
-        :param is_root:
         """
         # Data Values
         self.price = order.price
@@ -566,7 +563,7 @@ class LimitLevelTree:
         Inserts a new node and calls the grand-parent's balance() method -
         but only if it isn't root.
 
-        :param value:
+        :param limit_level:
         :return:
         """
         current_node = self
