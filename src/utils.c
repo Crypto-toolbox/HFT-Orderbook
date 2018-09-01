@@ -52,35 +52,39 @@ initQueue(Queue *q){
     q->size = 0;
 };
 
-int
-limitExists(Limit *root, Limit *limit){
+Limit*
+limitExists(Limit *root, int limitPrice){
     /**
      * Check if the given price level (value) exists in the
      * given limit tree (root).
      */
     if(root->parent == NULL && root->rightChild == NULL){
-        return 0;
+        return NULL;
     }
     Limit *currentLimit = root;
-    while(currentLimit->limitPrice != limit->limitPrice){
-        if(currentLimit->leftChild == NULL && currentLimit->rightChild==NULL){
-            return 0;
+    while(currentLimit->limitPrice != limitPrice){
+        if(currentLimit->leftChild == NULL && currentLimit->rightChild == NULL){
+            return NULL;
         }
         else {
-            if(currentLimit->rightChild != NULL && currentLimit->limitPrice < limit->limitPrice){
+            if(currentLimit->rightChild != NULL && currentLimit->limitPrice < limitPrice){
                 currentLimit = currentLimit->rightChild;
             }
-            else if(currentLimit->leftChild != NULL && currentLimit->limitPrice > limit->limitPrice){
+            else if(currentLimit->leftChild != NULL && currentLimit->limitPrice > limitPrice){
                 currentLimit = currentLimit->leftChild;
             }
             else{
+                /*
+                 * An Error occurred here. Indicate with a negative.
+                 */
                 return -1;
             }
             continue;
         }
     }
-    return 1;
+    return currentLimit;
 }
+
 
 int
 limitIsRoot(Limit *limit){
@@ -228,4 +232,15 @@ copyLimit(Limit *ptr_src, Limit *ptr_tar){
             ptr_order = ptr_order->nextOrder;
         }
     }
+}
+
+Limit*
+getBookSide(Book *ptr_book, Order *ptr_order){
+    /*
+     * Return the appropriate side from the book for the given order.
+     */
+    if (order->buyOrSell == 1){
+        return book->asks;
+    }
+    return book->bids;
 }

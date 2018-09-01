@@ -20,55 +20,62 @@ createRoot(void){
     return ptr_limit;
 }
 
-int
-addNewLimit(Limit *root, Limit *limit){
+Limit*
+addNewLimit(Limit *ptr_root, Limit *ptr_limit){
     /**
      * Add a new Limit struct to the given limit tree.
-     *
-     * Asserts that the limit does not yet exist.
-     * Also sets left and right child to NULL.
+     * Its left and right child will be set to NULL.
+     * 
+     * If it already exists, we return the existing limit. Otherwise, we
+     * return the given limit after we added it to the tree.
      */
-    if(limitExists(root, limit) == 1){
-        return 0;
+    Limit* existingLimit = limitExists(ptr_root, ptr_limit->limitPrice);
+    if(existingLimit != NULL){
+        return existingLimit;
     }
-    limit->leftChild = NULL;
-    limit->rightChild = NULL;
+    ptr_limit->leftChild = NULL;
+    ptr_limit->rightChild = NULL;
 
 
-    Limit *currentLimit = root;
+    Limit *ptr_currentLimit = ptr_root;
     Limit *child;
     while(1){
-        if(currentLimit->limitPrice < limit->limitPrice){
-            if(currentLimit->rightChild == NULL){
-                currentLimit->rightChild = limit;
-                limit->parent = currentLimit;
-                return 1;
+        if(ptr_currentLimit->limitPrice < ptr_limit->limitPrice){
+            if(ptr_currentLimit->rightChild == NULL){
+                ptr_currentLimit->rightChild = limit;
+                ptr_limit->parent = ptr_currentLimit;
+                return limit;
             }
             else{
-                currentLimit = currentLimit->rightChild;
+                ptr_currentLimit = ptr_currentLimit->rightChild;
             }
         }
-        else if (currentLimit->limitPrice > limit->limitPrice){
-            if(currentLimit->leftChild == NULL){
-                currentLimit->leftChild = limit;
-                limit->parent = currentLimit;
-                return 1;
+        else if (ptr_currentLimit->limitPrice > ptr_limit->limitPrice){
+            if(ptr_currentLimit->leftChild == NULL){
+                ptr_currentLimit->leftChild = limit;
+                ptr_limit->parent = ptr_currentLimit;
+                return limit;
             }
             else{
-                currentLimit = currentLimit->leftChild;
+                ptr_currentLimit = ptr_currentLimit->leftChild;
             }
         }
-        else{ /*If its neither greater than nor smalle then it must be equal, and hence exist.*/
-            break;
+        else{ 
+        /*
+         * If its neither greater than nor smaller then it must be equal, 
+         * and therefore already exist. We shouldn't reach this point, due to 
+         * the previous check up top, but just in case, we handle this here.
+         */
+         break;
         }
         continue;
 
     }
-    return 0;
+    return ptr_currentLimit;
 }
 
 void
-replaceLimitInParent(Limit *limit, Limit *newLimit) {
+replaceLimitInParent(Limit *ptr_limit, Limit *ptr_newLimit) {
     /**
      * Pop out the given limit and replace all pointers to it from limit->parent
      * to point to the newLimit.
@@ -79,21 +86,21 @@ replaceLimitInParent(Limit *limit, Limit *newLimit) {
      *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
 
-    if(!limitIsRoot(limit)){
-        if(limit==limit->parent->leftChild && !limitIsRoot(limit->parent)){
-            limit->parent->leftChild = newLimit;
+    if(!limitIsRoot(ptr_limit)){
+        if(ptr_limit==ptr_limit->parent->leftChild && !limitIsRoot(ptr_limit->parent)){
+            ptr_limit->parent->leftChild = ptr_newLimit;
         }
         else{
-            limit->parent->rightChild = newLimit;
+            ptr_limit->parent->rightChild = ptr_newLimit;
         }
     }
-    if(newLimit!=NULL){
-        newLimit->parent = limit->parent;
+    if(ptr_newLimit!=NULL){
+        ptr_newLimit->parent = ptr_limit->parent;
     }
 }
 
-int
-removeLimit(Limit *limit){
+Limit*
+removeLimit(Limit *ptr_limit){
     /**
      * Remove the given limit from the tree it belongs to.
      *
@@ -102,56 +109,56 @@ removeLimit(Limit *limit){
      * Python Reference code here:
      *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
-    if(!hasGrandpa(limit) && limitIsRoot(limit)){
-        return 0;
+    if(!hasGrandpa(ptr_limit) && limitIsRoot(ptr_limit)){
+        return NULL;
     }
 
-    Limit *ptr_successor = limit;
-    if(limit->leftChild != NULL && limit->rightChild != NULL){
+    Limit *ptr_successor = ptr_limit;
+    if(ptr_limit->leftChild != NULL && ptr_limit->rightChild != NULL){
         /*Limit has two children*/
-        ptr_successor = getMinimumLimit(limit->rightChild);
+        ptr_successor = getMinimumLimit(ptr_limit->rightChild);
         Limit *parent = ptr_successor->parent;
         Limit *leftChild = ptr_successor->rightChild;
         Limit *rightChild = ptr_successor->leftChild;
 
 
-        if(limit->leftChild != ptr_successor){
-            ptr_successor->leftChild = limit->leftChild;
+        if(ptr_limit->leftChild != ptr_successor){
+            ptr_successor->leftChild = ptr_limit->leftChild;
         }
         else{
             ptr_successor->leftChild = NULL;
         }
 
-        if(limit->rightChild != ptr_successor){
-            ptr_successor->rightChild = limit->rightChild;
+        if(ptr_limit->rightChild != ptr_successor){
+            ptr_successor->rightChild = ptr_limit->rightChild;
         }
         else{
             ptr_successor->rightChild = NULL;
         }
-        limit->leftChild = leftChild;
-        limit->rightChild = rightChild;
-        ptr_successor->parent = limit->parent;
-        if(ptr_successor->parent->rightChild==limit){
+        ptr_limit->leftChild = leftChild;
+        ptr_limit->rightChild = rightChild;
+        ptr_successor->parent = ptr_limit->parent;
+        if(ptr_successor->parent->rightChild==ptr_limit){
             ptr_successor->parent->rightChild = ptr_successor;
         }
-        else if(ptr_successor->parent->leftChild==limit){
+        else if(ptr_successor->parent->leftChild==ptr_limit){
             ptr_successor->parent->leftChild = ptr_successor;
         }
-        limit->parent = parent;
+        ptr_limit->parent = parent;
 
-        removeLimit(limit);
+        removeLimit(ptr_limit);
     }
-    else if(limit->leftChild != NULL && limit->rightChild == NULL){
+    else if(ptr_limit->leftChild != NULL && ptr_limit->rightChild == NULL){
         /*Limit has only left child*/
-        replaceLimitInParent(limit, limit->leftChild);
+        replaceLimitInParent(ptr_limit, ptr_limit->leftChild);
     }
-    else if(limit->leftChild != NULL && limit->rightChild == NULL){
+    else if(ptr_limit->leftChild != NULL && ptr_limit->rightChild == NULL){
         /*Limit has only left child*/
-        replaceLimitInParent(limit, limit->rightChild);
+        replaceLimitInParent(ptr_limit, ptr_limit->rightChild);
     }
     else{
         /*Limit has no children*/
-        replaceLimitInParent(limit, NULL);
+        replaceLimitInParent(ptr_limit, NULL);
     }
-    return 1;
+    return ptr_limit;
 }

@@ -390,13 +390,13 @@ TestAddNewLimit(CuTest *tc){
     Limit *ptr_newLimitB = createDummyLimit(50.0);
     Limit *ptr_newLimitC = createDummyLimit(200.0);
 
-    int statusCode = 0;
+    Limit *addedLimit;
 
     /**
      * Add the first limit. Assert it is added as the leftChild of root. Check its references after addition to root.
      */
-    statusCode = addNewLimit(ptr_root, ptr_newLimitA);
-    CuAssertIntEquals(tc, 1, statusCode);
+    addedLimit = addNewLimit(ptr_root, ptr_newLimitA);
+    CuAssertPtrNotNull(tc, addedLimit)
 
     CuAssertPtrEquals(tc, ptr_root->rightChild, ptr_newLimitA);
     CuAssertPtrEquals(tc, ptr_root->rightChild->parent, ptr_root);
@@ -404,8 +404,8 @@ TestAddNewLimit(CuTest *tc){
     /**
       * Add the second limit. Assert it is added as root->leftChild->leftChild. Check references to parent.
       */
-    statusCode = addNewLimit(ptr_root, ptr_newLimitB);
-    CuAssertIntEquals(tc, 1, statusCode);
+    addedLimit = addNewLimit(ptr_root, ptr_newLimitB);
+    CuAssertPtrNotNull(tc, addedLimit)
 
     CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild, ptr_newLimitB);
     CuAssertPtrEquals(tc, ptr_root->rightChild->leftChild->parent, ptr_newLimitA);
@@ -413,16 +413,16 @@ TestAddNewLimit(CuTest *tc){
     /**
       * Add the third limit. Assert it is added as root->leftChild->rightChild. Check references to parent.
       */
-    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuAssertIntEquals(tc, 1, statusCode);
+    addedLimit = addNewLimit(ptr_root, ptr_newLimitC);
+    CuAssertPtrNotNull(tc, addedLimit)
 
     CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild, ptr_newLimitC);
     CuAssertPtrEquals(tc, ptr_root->rightChild->rightChild->parent, ptr_newLimitA);
     /**
      * Add a duplicate limit and assert the returned status code is 0.
      */
-    statusCode = addNewLimit(ptr_root, ptr_newLimitC);
-    CuAssertIntEquals(tc, 0, statusCode);
+    addedLimit = addNewLimit(ptr_root, ptr_newLimitC);
+    CuAssertPtrEquals(tc, addedLimit, NULL);
 }
 
 /**
@@ -439,28 +439,24 @@ TestLimitExists(CuTest *tc){
     Limit *ptr_root = createDummyTree(ptr_newLimitA, ptr_newLimitB, ptr_newLimitC, ptr_newLimitD);
 
     /**
-     * Assert that limitExists returns correct integer values.
+     * Assert that limitExists returns a limit ptr with expected value.
      */
-    Limit limit;
-    limit.limitPrice = 100;
-    Limit *ptr_limit = &limit;
+    Limit *ptr_foundLimit;
 
-    int statusCode = 0;
+    ptr_foundLimit = limitExists(ptr_root, 100);
+    CuAssertPtrEquals(tc, ptr_foundLimit, ptr_LimitA);
 
-    statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, 1, statusCode);
-    limit.limitPrice = 100;
-    statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, 1, statusCode);
-    limit.limitPrice = 200;
-    statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, 1, statusCode);
-    limit.limitPrice = 50;
-    statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, 1, statusCode);
-    limit.limitPrice = 500;
-    statusCode = limitExists(ptr_root, ptr_limit);
-    CuAssertIntEquals(tc, 0, statusCode);
+    ptr_foundLimit = limitExists(ptr_root, 200.0);
+    CuAssertPtrEquals(tc, ptr_foundLimit, ptr_LimitB);
+
+    ptr_foundLimit = limitExists(ptr_root, 50);
+    CuAssertPtrEquals(tc, ptr_foundLimit, ptr_LimitC);
+
+    ptr_foundLimit = limitExists(ptr_root, 45);
+    CuAssertPtrEquals(tc, ptr_foundLimit, ptr_LimitD);
+
+    ptr_foundLimit = limitExists(ptr_root, 500);
+    CuAssertPtrEquals(tc, ptr_foundLimit, NULL);
 }
 
 void
@@ -700,10 +696,10 @@ TestRemoveLimit(CuTest *tc){
      * TestCase1: Removing Limits which are present as children, with no children of their own.
      */
 
-    int statusCode = 0;
+    Limit *removedLimit;
 
-    statusCode = removeLimit(ptr_newLimitB);
-    CuAssertIntEquals(tc, 1, statusCode);
+    removedLimit = removeLimit(ptr_newLimitB);
+    CuAssertPtrNotNull(tc removedLimit);
     CuAssertPtrEquals(tc, NULL,  ptr_root->rightChild->rightChild);
     CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild->leftChild);
 
@@ -712,8 +708,8 @@ TestRemoveLimit(CuTest *tc){
      * TestCase2: Remove a limit which has a single child and parent
      */
 
-    statusCode = removeLimit(ptr_newLimitC);
-    CuAssertIntEquals(tc, 1, statusCode);
+    removedLimit = removeLimit(ptr_newLimitC);
+    CuAssertPtrNotNull(tc removedLimit);
     CuAssertPtrEquals(tc, NULL, ptr_root->rightChild->rightChild);
     CuAssertPtrEquals(tc, ptr_newLimitD, ptr_root->rightChild->leftChild);
 
@@ -729,8 +725,8 @@ TestRemoveLimit(CuTest *tc){
     Limit *ptr_LimitD = createDummyLimit(45.0);
     Limit *ptr_rootB = createDummyTree(ptr_LimitA, ptr_LimitB, ptr_LimitC, ptr_LimitD);
 
-    statusCode = removeLimit(ptr_LimitA);
-    CuAssertIntEquals(tc, 1, statusCode);
+    removedLimit = removeLimit(ptr_LimitA);
+    CuAssertPtrNotNull(tc removedLimit);
     CuAssertPtrEquals(tc, ptr_LimitB, ptr_rootB->rightChild);
     CuAssertPtrEquals(tc, NULL, ptr_rootB->rightChild->rightChild);
     CuAssertPtrEquals(tc, ptr_LimitC, ptr_rootB->rightChild->leftChild);

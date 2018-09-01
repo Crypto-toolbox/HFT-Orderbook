@@ -40,6 +40,26 @@ typedef struct Queue{
     QueueItem *tail;
 } Queue;
 
+typedef struct Book{
+    Limit *bids;
+    Limit *asks;
+} Book;
+
+
+/**
+ * API Functions
+ */
+
+Book*
+initBook();
+
+void
+addOrderToBook(Limit* book, Order* order);
+
+int
+removeOrderFromBook(Limit* book, Order* order);
+
+
 /**
  * INIT FUNCTIONS
  */
@@ -88,15 +108,17 @@ removeOrder(Order *order);
 Limit*
 createRoot(void);
 
-int
+Limit*
 addNewLimit(Limit *root, Limit *limit);
 
 void
 replaceLimitInParent(Limit *limit, Limit *newLimit);
 
-int
+Limit*
 removeLimit(Limit *limit);
 
+int
+getLimit(Limit *root, Limit *limit)
 /**
  * BINARY SEARCH TREE BALANCING FUNCTIONS
  */
@@ -121,7 +143,7 @@ rotateRightLeft(Limit *limit);
  * CONVENIENCE FUNCTIONS FOR BST OPERATIONS
  */
 
-int
+Limit*
 limitExists(Limit *root, Limit *limit);
 
 int
@@ -150,7 +172,7 @@ copyLimit(Limit *ptr_src, Limit *ptr_tar);
 
 /**
  * CuTest Functions
- * */
+ */
 
 void RunAllTests(void);
 

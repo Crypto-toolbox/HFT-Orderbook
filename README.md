@@ -1,5 +1,6 @@
 # HFT-Orderbook
-Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in Python3 (C implementation on the way)
+Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in C.
+A python implementation exists, but is not fully tested and is buggy.
 
 Based on WK Selph's Blogpost:
 
@@ -88,3 +89,27 @@ https://goo.gl/KF1SRm
     that it is important to be able to update Book.lowestSell/highestBuy
     in O(1) time when a limit is deleted (which is why each Limit has a Limit
     *parent) so that GetBestBid/Offer can remain O(1)."
+
+## Usage
+
+### C Library
+        from lob import LimitOrderBook, Order
+        lob = LimitOrderBook()
+        orders = [
+            Order(uid=5879, is_bid=False, size=550, price=26.0),
+            Order(uid=5879, is_bid=False, size=0, price=26.0),
+            Order(uid=5880, is_bid=False, size=80, price=38.0),
+            Order(uid=5881, is_bid=False, size=100, price=22.7)
+            ]
+        
+        for order in orders:
+             lob.process(order)
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include "hftlob.h"
+
+Limit *ptr_book = initBook();
+
+
+```
