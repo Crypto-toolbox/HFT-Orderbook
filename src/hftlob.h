@@ -5,7 +5,7 @@
  */
 
 typedef struct Order{
-    char *tid;
+    char *oid;
     unsigned buyOrSell;
     double shares;
     double limit;
@@ -29,17 +29,6 @@ typedef struct Limit{
     struct Order *tailOrder;
 } Limit;
 
-typedef struct QueueItem{
-    Limit *limit;
-    struct QueueItem *previous;
-} QueueItem;
-
-typedef struct Queue{
-    int size;
-    QueueItem *head;
-    QueueItem *tail;
-} Queue;
-
 typedef struct Book{
     Limit *bids;
     Limit *asks;
@@ -47,46 +36,29 @@ typedef struct Book{
 
 
 /**
- * API Functions
+ * Book API Functions
  */
 
-Book*
-initBook();
-
 void
-addOrderToBook(Limit* book, Order* order);
+addOrderToBook(Book* ptr_book, Order* ptr_order);
 
 int
-removeOrderFromBook(Limit* book, Order* order);
+removeOrderFromBook(Book* ptr_book, Order* ptr_order);
 
 
 /**
  * INIT FUNCTIONS
  */
+
+void
+initBook(Book *book);
+
 void
 initOrder(Order *order);
 
 void
 initLimit(Limit *limit);
 
-void
-initQueueItem(QueueItem *item);
-
-void
-initQueue(Queue *q);
-
-/**
- * QUEUE FUNCTIONS
- */
-
-void
-pushToQueue(Queue *q, Limit *limit);
-
-Limit*
-popFromQueue(Queue *q);
-
-int
-queueIsEmpty(Queue *q);
 
 /**
  * ORDER FUNCTIONS
@@ -109,16 +81,14 @@ Limit*
 createRoot(void);
 
 Limit*
-addNewLimit(Limit *root, Limit *limit);
-
-void
-replaceLimitInParent(Limit *limit, Limit *newLimit);
+addLimit(Limit *root, Limit *limit);
 
 Limit*
 removeLimit(Limit *limit);
 
 int
 getLimit(Limit *root, Limit *limit)
+
 /**
  * BINARY SEARCH TREE BALANCING FUNCTIONS
  */
@@ -166,6 +136,9 @@ getHeight(Limit *limit);
 
 int
 getBalanceFactor(Limit *limit);
+
+void
+replaceLimitInParent(Limit *limit, Limit *newLimit);
 
 void
 copyLimit(Limit *ptr_src, Limit *ptr_tar);
