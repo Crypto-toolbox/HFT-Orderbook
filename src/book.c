@@ -7,15 +7,38 @@
 #include <stdlib.h>
 #include "hftlob.h"
 
-Book*
-initBook(void){
+void
+initBook(Book *ptr_book){
     /*
-     * Create a new Book struct and return its pointer.
+     * Create a new Book struct at the given pointer.
      */
-    Book *ptr_book = malloc(sizeof(Book));
     ptr_book->bids = createRoot();
     ptr_book->asks = createRoot();
     return ptr_book;
+}
+
+Book*
+newBook(void){
+    /**
+     * Create a Book struct and return its pointer.
+     */
+    Book *ptr_book = malloc(sizeof(Book));
+    initBook(ptr_book);
+    return ptr_book;
+}
+
+void
+deleteBook(Book *ptr_book){
+    /**
+     * Delete the Book struct at the given pointer.
+     *
+     * We first delete the Limit structs representing our roots for bids and ask,
+     * before calling free() on the Book struct pointer.
+     *
+     */
+    deleteRoot(ptr_book->bids);
+    deleteRoot(ptr_book->asks);
+    free(ptr_book);
 }
 
 void
@@ -54,4 +77,12 @@ removeOrderFromBook(Order* order, Book* book){
         return 0
     }
     return 1;
+}
+
+int
+executeOrder(Order *ptr_order, Book *ptr_book){
+    /**
+     * Execute the given order in the given book.
+     */
+     return 0;
 }
