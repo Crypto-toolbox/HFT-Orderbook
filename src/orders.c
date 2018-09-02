@@ -6,7 +6,69 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <uuid/uuid.h>  // Requires compilation with '-luuid' flag.
 #include "hftlob.h"
+
+/**
+ * API for Order Structs.
+ */
+
+void
+initOrder(Order *ptr_order){
+    /**
+     * Initialize an Order struct at the given pointer.
+     *
+     * .. Note::
+     *
+     *      This initializer function differs slightly from the others, as it
+     *      allocates a char* to ptr_order->oid and assigns a UUID to it, which
+     *      acts as its unique order ID.
+     *
+     */
+    ptr_order->oid = NULL;
+    addOrderID(ptr_order);
+    ptr_order->buyOrSell = -1;
+    ptr_order->shares = 0;
+    ptr_order->limit = 0;
+    ptr_order->entryTime = 0;
+    ptr_order->eventTime = 0;
+    ptr_order->nextOrder = NULL;
+    ptr_order->prevOrder = NULL;
+    ptr_order->parentLimit = NULL;
+    ptr_order->exchangeId = 0;
+};
+
+Order*
+newOrder(int isBuy, double limit, double shares){
+    /**
+     * Create an Order struct and return a pointer to it.
+     */
+    Order *ptr_order = malloc(sizeof(Order));
+    initOrder(ptr_order);
+    assert(isBuy == 0 || isBuy == 1);
+    ptr_order->buyOrSell = isBuy;
+    ptr_order->limit = limit;
+    ptr_order->shares;
+    return ptr_order;
+}
+
+void
+deleteOrder(Order *ptr_order){
+    /**
+     * Delete the Order struct at the given pointer.
+     *
+     * We only execute this function if the order is not part of a Limit
+     * anymore.
+     *
+     * We free the order_id field (ptr_order->oid) first, then free the ptr
+     * itself.
+     */
+    assert(ptr_order->parentLimit == NULL)
+    assert(ptr_order->prevOrder == NULL)
+    assert(ptr_order->nextOrder == NULL)
+    free(ptr_order->oid);
+    free(ptr_order);
+}
 
 int
 pushOrder(Limit *limit, Order *newOrder){
@@ -94,5 +156,20 @@ removeOrder(Order *order){
         return -1;
     }
 
+    return 1;
+}
+
+int
+addOrderID(Order *ptr_order){
+    /**
+     * Add an UUID-based Order ID to the Order struct at the given pointer.
+     *
+     * We safeguard against overrides if the given order already has an OID
+     * assigned to it.
+     */
+    if (ptr_order->oid != NULL){return 0}
+    ptr_order->oid = malloc(sizeof(char) * 37);
+    uuid_generate_random(BINUUID);
+    uuid_unparse(binuuid, ptr_order->oid);
     return 1;
 }
