@@ -23,6 +23,22 @@
  * API for Limit struct-based Binary Search Tree Implementation.
  */
 
+void
+initLimit(Limit *limit){
+    /**
+     * Initialize a Limit struct at the given pointer.
+     */
+    limit->limitPrice = 0;
+    limit->size = 0;
+    limit->totalVolume = 0;
+    limit->orderCount = 0;
+    limit->parent = NULL;
+    limit->leftChild = NULL;
+    limit->rightChild = NULL;
+    limit->headOrder = NULL;
+    limit->headOrder = NULL;
+};
+
 Limit*
 newRoot(void){
     /**
