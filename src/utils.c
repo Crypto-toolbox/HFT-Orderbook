@@ -36,7 +36,7 @@ initLimit(Limit *limit){
     limit->leftChild = NULL;
     limit->rightChild = NULL;
     limit->headOrder = NULL;
-    limit->headOrder = NULL;
+    limit->tailOrder = NULL;
 };
 
 void
