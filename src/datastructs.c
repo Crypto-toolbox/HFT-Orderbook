@@ -9,10 +9,9 @@ pushToQueue(Queue *q, Limit *limit){
     QueueItem *ptr_newItem = malloc(sizeof(QueueItem));
     ptr_newItem->limit = limit;
 
-    if(q->head != NULL){
-        q->head->previous = ptr_newItem;
+    if(q->head == NULL){
+        q->head = ptr_newItem;
     }
-    q->head = ptr_newItem;
     ptr_newItem->previous = q->tail;
     q->tail = ptr_newItem;
     q->size++;
