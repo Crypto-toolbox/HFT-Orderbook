@@ -145,8 +145,8 @@ removeLimit(Limit *limit){
         /*Limit has only left child*/
         replaceLimitInParent(limit, limit->leftChild);
     }
-    else if(limit->leftChild != NULL && limit->rightChild == NULL){
-        /*Limit has only left child*/
+    else if (limit->leftChild == NULL && limit->rightChild != NULL) {
+        /*Limit has only right child*/
         replaceLimitInParent(limit, limit->rightChild);
     }
     else{
