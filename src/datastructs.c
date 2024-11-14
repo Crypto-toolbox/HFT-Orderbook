@@ -30,7 +30,7 @@ popFromQueue(Queue *q){
         q->head = NULL;
     }
     q->size--;
-    free(poppedItem);
+
     return poppedLimit;
 }
 
