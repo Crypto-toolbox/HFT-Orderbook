@@ -5,6 +5,44 @@
 #include "CuTest.h"
 #include "hftlob.h"
 
+/**
+ * let's make sure our struct works and can be initialized.
+ */
+
+void TestBookInitialization(CuTest* tc) {
+    Book* book = createBook();
+    
+    CuAssertPtrNotNull(tc, book);
+    CuAssertPtrEquals(tc, NULL, book->bids);
+    CuAssertPtrEquals(tc, NULL, book->asks);
+    
+    // Check that the map is empty
+    for (int i = 0; i < 10000; i++) {
+        CuAssertPtrEquals(tc, NULL, book->order_map[i]);
+    }
+}
+
+/**
+ * Test for orerbook to add order.
+ */
+
+int runTests() {
+    printf("--- HFT Orderbook Test ---\n");
+    
+    Book* myBook = createBook();
+    
+    // Add a Bid (0) at price 150.50 with 100 shares, using ID 55
+    addOrderToBook(myBook, 55, 0, 150.50, 100.0);
+    
+    // Verify O(1) lookup
+    if (myBook->order_map[55] != NULL) {
+        printf("Verified: Order 55 exists in the map!\n");
+    }
+
+    return 0;
+}
+
+
 
 /**
  * Define some convenience functions before we start testing.

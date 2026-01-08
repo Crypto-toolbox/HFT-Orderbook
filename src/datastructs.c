@@ -3,6 +3,8 @@
  */
 #include <stdlib.h>
 #include "hftlob.h"
+#include <string.h>
+
 
 void
 pushToQueue(Queue *q, Limit *limit){
@@ -40,4 +42,24 @@ queueIsEmpty(Queue *q){
         return 1;
     }
     return 0;
+}
+
+
+Book* createBook() {
+    // Allocate memory for the book
+    Book* new_book = (Book*)malloc(sizeof(Book));
+    
+    if (new_book == NULL) {
+        return NULL; // Memory allocation failed
+    }
+
+    // Initialize trees to empty
+    new_book->bids = NULL;
+    new_book->asks = NULL;
+
+    // Initialize the order map to all NULLs
+    // This ensures we don't have "garbage" data in our map
+    memset(new_book->order_map, 0, sizeof(new_book->order_map));
+
+    return new_book;
 }
