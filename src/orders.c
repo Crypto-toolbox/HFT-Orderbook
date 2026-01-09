@@ -97,7 +97,8 @@ removeOrder(Order *order){
     return 1;
 }
 
-
+// Adding Order to Book
+// This function finds the right price level (Limit) and attaches the Order to the end of the list (Time Priority).
 
 void addOrderToBook(Book* book, int id, int side, double price, double shares) {
     // 1. Create and initialize the new Order
@@ -117,4 +118,73 @@ void addOrderToBook(Book* book, int id, int side, double price, double shares) {
     // Usually you'd call addNewLimit here to find/create the price level
     // this establishes the O(1) map required by the issue.
     printf("Successfully added Order ID: %d at Price: %.2f\n", id, price);
+}
+
+// Removing order from book : map to find and delete an order in constant time $O(1)$.
+
+void removeOrderFromBook(Book* book,int id){
+    // 1. O(1) Lookup: Find the order in the map using ID
+    if (id < 0 || id >= 10000 ) return;
+    Order* orderToDelete = book ->order_map[id];
+
+    if (orderToDelete == NULL){
+        printf("Order %d not found, nothing to remove.\n", id);
+    }
+    
+    // 2. Access the price level (Limit) this order belongs to
+    Limit* parent = orderToDelete->parentLimit;
+
+    // 3. Unhook the order from the doubly linked list
+    if (orderToDelete->prevOrder != NULL) {
+        orderToDelete->prevOrder->nextOrder = orderToDelete->nextOrder;
+    } else {
+        // It was the head of the list
+        parent->headOrder = orderToDelete->nextOrder;
+    }
+
+    if (orderToDelete->nextOrder != NULL) {
+        orderToDelete->nextOrder->prevOrder = orderToDelete->prevOrder;
+    } else {
+        // It was the tail of the list
+        parent->tailOrder = orderToDelete->prevOrder;
+    }
+
+    // 4. Update the Limit statistics
+    parent->orderCount--;
+    parent->totalVolume -= orderToDelete->shares;
+
+    // 5. Clean up the map and free memory
+    book->order_map[id] = NULL;
+    free(orderToDelete);
+
+    printf("Order %d successfully removed from book.\n", id);
+
+}
+
+// If only quantity changes: We just update the number (keeping time priority).
+// If price changes: We must remove it and re-add it (losing time priority).
+
+void replaceOrderInBook(Book* book, int id, double newPrice, double newQty) {
+    Order* existingOrder = book->order_map[id];
+    
+    if (existingOrder == NULL) {
+        printf("Order %d not found for replacement. Adding as new.\n", id);
+        addOrderToBook(book, id, 0, newPrice, newQty); // Default side or logic needed
+        return;
+    }
+
+    // If price is the same, just update quantity (fastest)
+    if (existingOrder->limit == newPrice) {
+        double qtyDiff = newQty - existingOrder->shares;
+        existingOrder->shares = newQty;
+        existingOrder->parentLimit->totalVolume += qtyDiff;
+        printf("Order %d quantity updated to %.2f\n", id, newQty);
+    } 
+    else {
+        // Price changed: Must remove and re-add to maintain price/time priority
+        int side = existingOrder->buyOrSell;
+        removeOrderFromBook(book, id);
+        addOrderToBook(book, id, side, newPrice, newQty);
+        printf("Order %d price changed. Re-inserted into book.\n", id);
+    }
 }

@@ -229,3 +229,13 @@ copyLimit(Limit *ptr_src, Limit *ptr_tar){
         }
     }
 }
+
+
+// To visulaise the tree 
+
+void printTree(Limit* node) {
+    if (node == NULL) return;
+    printTree(node->leftChild);
+    printf("Price Level: %.2f | Volume: %d\n", node->limitPrice, node->totalVolume);
+    printTree(node->rightChild);
+}

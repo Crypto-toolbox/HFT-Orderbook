@@ -107,4 +107,6 @@ void balanceBranch(Limit *limit);
 
 void RunAllTests(void);
 
+void printTree(Limit* node);
+
 #endif
