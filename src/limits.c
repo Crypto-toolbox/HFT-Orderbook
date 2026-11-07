@@ -2,7 +2,7 @@
  * Limit operations
  */
 
- #include <math.h>
+#include <math.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +36,6 @@ addNewLimit(Limit *root, Limit *limit){
 
 
     Limit *currentLimit = root;
-    Limit *child;
     while(1){
         if(currentLimit->limitPrice < limit->limitPrice){
             if(currentLimit->rightChild == NULL){
@@ -106,40 +105,19 @@ removeLimit(Limit *limit){
         return 0;
     }
 
-    Limit *ptr_successor = limit;
     if(limit->leftChild != NULL && limit->rightChild != NULL){
-        /*Limit has two children*/
-        ptr_successor = getMinimumLimit(limit->rightChild);
-        Limit *parent = ptr_successor->parent;
-        Limit *leftChild = ptr_successor->rightChild;
-        Limit *rightChild = ptr_successor->leftChild;
-
-
-        if(limit->leftChild != ptr_successor){
-            ptr_successor->leftChild = limit->leftChild;
-        }
-        else{
-            ptr_successor->leftChild = NULL;
-        }
+        /*Limit has two children: splice in its in-order successor (see #34).*/
+        Limit *ptr_successor = getMinimumLimit(limit->rightChild);
 
         if(limit->rightChild != ptr_successor){
+            replaceLimitInParent(ptr_successor, ptr_successor->rightChild);
             ptr_successor->rightChild = limit->rightChild;
+            ptr_successor->rightChild->parent = ptr_successor;
         }
-        else{
-            ptr_successor->rightChild = NULL;
-        }
-        limit->leftChild = leftChild;
-        limit->rightChild = rightChild;
-        ptr_successor->parent = limit->parent;
-        if(ptr_successor->parent->rightChild==limit){
-            ptr_successor->parent->rightChild = ptr_successor;
-        }
-        else if(ptr_successor->parent->leftChild==limit){
-            ptr_successor->parent->leftChild = ptr_successor;
-        }
-        limit->parent = parent;
 
-        removeLimit(limit);
+        replaceLimitInParent(limit, ptr_successor);
+        ptr_successor->leftChild = limit->leftChild;
+        ptr_successor->leftChild->parent = ptr_successor;
     }
     else if(limit->leftChild != NULL && limit->rightChild == NULL){
         /*Limit has only left child*/

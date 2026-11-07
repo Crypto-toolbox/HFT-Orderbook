@@ -13,9 +13,8 @@ balanceBranch(Limit *limit) {
     /**
      * Balance the nodes of the given branch of Limit structs.
      *
-     * Asserts that limit has a height of at least 2.
+     * Branches with a balance factor within [-1, 1] are left untouched.
      */
-    assert(getHeight(limit) < 2);
 
     int balanceFactor = getBalanceFactor(limit);
     if(balanceFactor > 1){
@@ -24,18 +23,18 @@ balanceBranch(Limit *limit) {
         if(balanceFactor < 0){
             rotateRightLeft(limit);
         }
-        else if(balanceFactor > 0){
+        else{
             rotateRightRight(limit);
         }
     }
     else if(balanceFactor < -1){
         /*Left is heavier.*/
         balanceFactor = getBalanceFactor(limit->leftChild);
-        if(balanceFactor < 0){
-            rotateLeftLeft(limit);
-        }
-        else if(balanceFactor > 0){
+        if(balanceFactor > 0){
             rotateLeftRight(limit);
+        }
+        else{
+            rotateLeftLeft(limit);
         }
     }
     else{/*Everything is fine, do nothing*/}

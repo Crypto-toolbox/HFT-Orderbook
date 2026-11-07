@@ -15,7 +15,7 @@ by being more descriptive.
 void
 initOrder(Order *order){
     order->tid = NULL;
-    order->buyOrSell = -1;
+    order->buyOrSell = 0;
     order->shares = 0;
     order->limit = 0;
     order->entryTime = 0;
@@ -36,7 +36,7 @@ initLimit(Limit *limit){
     limit->leftChild = NULL;
     limit->rightChild = NULL;
     limit->headOrder = NULL;
-    limit->headOrder = NULL;
+    limit->tailOrder = NULL;
 };
 
 void

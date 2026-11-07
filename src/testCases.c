@@ -27,8 +27,7 @@ createDummyLimit(float price){
 Limit*
 createDummyTree(Limit *dummyA, Limit *dummyB, Limit *dummyC, Limit *dummyD){
     int statusCode = 0;
-    Limit *ptr_root = malloc(sizeof(Limit));
-    ptr_root = createRoot();
+    Limit *ptr_root = createRoot();
     statusCode = addNewLimit(ptr_root, dummyA);
     assert(statusCode == 1);
     statusCode = addNewLimit(ptr_root, dummyB);
@@ -225,7 +224,7 @@ TestOrderPopping(CuTest *tc){
     pushOrder(ptr_limit, ptr_newOrderB);
     pushOrder(ptr_limit, ptr_newOrderC);
 
-    Order *ptr_poppedOrder = malloc(sizeof(Order));
+    Order *ptr_poppedOrder = NULL;
 
     /**
      * Pop all orders and check after each pop that all references are updated correctly, along with all relevant
@@ -289,8 +288,6 @@ TestOrderPopping(CuTest *tc){
     // // // //
     ptr_poppedOrder = popOrder(ptr_limit);
     CuAssertPtrEquals(tc, NULL, ptr_poppedOrder);
-
-    free(ptr_poppedOrder);
 }
 
 void
@@ -341,6 +338,10 @@ TestRemoveOrder(CuTest *tc){
      */
     returnCode = removeOrder(ptr_newOrderB);
     CuAssertIntEquals(tc, 1, returnCode);
+    CuAssertIntEquals(tc, 2, ptr_limit->orderCount);
+    CuAssertDblEquals(tc, 40.0, ptr_limit->size, 0.0);
+    CuAssertDblEquals(tc, 40000.0, ptr_limit->totalVolume, 0.0);
+    CuAssertPtrEquals(tc, NULL, ptr_newOrderB->parentLimit);
     CuAssertPtrEquals(tc, ptr_newOrderC, ptr_limit->headOrder);
     CuAssertPtrEquals(tc, ptr_newOrderA, ptr_newOrderC->nextOrder);
     CuAssertPtrEquals(tc, NULL, ptr_newOrderC->prevOrder);
@@ -359,6 +360,12 @@ TestRemoveOrder(CuTest *tc){
     CuAssertIntEquals(tc, 1, returnCode);
     CuAssertPtrEquals(tc, NULL, ptr_limit->headOrder);
     CuAssertPtrEquals(tc, NULL, ptr_limit->tailOrder);
+    CuAssertIntEquals(tc, 0, ptr_limit->orderCount);
+    CuAssertDblEquals(tc, 0.0, ptr_limit->size, 0.0);
+
+    /* Removing an order that is no longer in a limit fails gracefully. */
+    CuAssertIntEquals(tc, -1, removeOrder(ptr_newOrderC));
+    free(ptr_limit);
 }
 
 /**
@@ -885,9 +892,108 @@ TestRotateRL(CuTest *tc){
     CuAssertPtrEquals(tc, ptr_newLimitC, ptr_root->rightChild);
 }
 
+
+void
+TestQueueIsFifo(CuTest *tc){
+    Limit *a = createDummyLimit(1.0);
+    Limit *b = createDummyLimit(2.0);
+    Limit *c = createDummyLimit(3.0);
+    Queue q;
+    initQueue(&q);
+
+    CuAssertIntEquals(tc, 1, queueIsEmpty(&q));
+    pushToQueue(&q, a);
+    pushToQueue(&q, b);
+    CuAssertPtrEquals(tc, a, popFromQueue(&q));
+    pushToQueue(&q, c);
+    CuAssertIntEquals(tc, 2, q.size);
+    CuAssertPtrEquals(tc, b, popFromQueue(&q));
+    CuAssertPtrEquals(tc, c, popFromQueue(&q));
+    CuAssertPtrEquals(tc, NULL, popFromQueue(&q));
+    CuAssertIntEquals(tc, 1, queueIsEmpty(&q));
+    CuAssertIntEquals(tc, 0, q.size);
+    free(a); free(b); free(c);
+}
+
+void
+TestInitLimitClearsTail(CuTest *tc){
+    Limit limit;
+    limit.tailOrder = (Order *)&limit; /* garbage */
+    initLimit(&limit);
+    CuAssertPtrEquals(tc, NULL, limit.headOrder);
+    CuAssertPtrEquals(tc, NULL, limit.tailOrder);
+}
+
+void
+TestRemoveLimitWithDeepSuccessor(CuTest *tc){
+    /**
+     * Regression test for #34: removing a node with two children whose
+     * in-order successor is NOT its direct right child.
+     *
+     *          100                 120
+     *        /     \             /     \
+     *      50      150   ->    50      150
+     *             /   \               /   \
+     *           120   200           130   200
+     *              \
+     *              130
+     */
+    Limit *l100 = createDummyLimit(100.0);
+    Limit *l50  = createDummyLimit(50.0);
+    Limit *l150 = createDummyLimit(150.0);
+    Limit *l120 = createDummyLimit(120.0);
+    Limit *l200 = createDummyLimit(200.0);
+    Limit *l130 = createDummyLimit(130.0);
+    Limit *root = createRoot();
+    addNewLimit(root, l100);
+    addNewLimit(root, l50);
+    addNewLimit(root, l150);
+    addNewLimit(root, l120);
+    addNewLimit(root, l200);
+    addNewLimit(root, l130);
+
+    CuAssertIntEquals(tc, 1, removeLimit(l100));
+    CuAssertPtrEquals(tc, l120, root->rightChild);
+    CuAssertPtrEquals(tc, root, l120->parent);
+    CuAssertPtrEquals(tc, l50, l120->leftChild);
+    CuAssertPtrEquals(tc, l120, l50->parent);
+    CuAssertPtrEquals(tc, l150, l120->rightChild);
+    CuAssertPtrEquals(tc, l120, l150->parent);
+    CuAssertPtrEquals(tc, l130, l150->leftChild);
+    CuAssertPtrEquals(tc, l150, l130->parent);
+    CuAssertPtrEquals(tc, l200, l150->rightChild);
+    CuAssertIntEquals(tc, 0, limitExists(root, l100));
+    CuAssertIntEquals(tc, 2, getHeight(l120));
+
+    /* Remove a node whose successor IS its direct right child. */
+    CuAssertIntEquals(tc, 1, removeLimit(l150));
+    CuAssertPtrEquals(tc, l200, l120->rightChild);
+    CuAssertPtrEquals(tc, l120, l200->parent);
+    CuAssertPtrEquals(tc, l130, l200->leftChild);
+    CuAssertPtrEquals(tc, l200, l130->parent);
+    CuAssertPtrEquals(tc, NULL, l200->rightChild);
+}
+
 void
 TestBalanceBranch(CuTest *tc){
-    CuFail(tc, "Finish this test!\n");
+    /* A right-leaning chain 10 -> 20 -> 30 is rebalanced around 20. */
+    Limit *l10 = createDummyLimit(10.0);
+    Limit *l20 = createDummyLimit(20.0);
+    Limit *l30 = createDummyLimit(30.0);
+    Limit *root = createRoot();
+    addNewLimit(root, l10);
+    addNewLimit(root, l20);
+    addNewLimit(root, l30);
+
+    balanceBranch(l10);
+    CuAssertPtrEquals(tc, l20, root->rightChild);
+    CuAssertPtrEquals(tc, l10, l20->leftChild);
+    CuAssertPtrEquals(tc, l30, l20->rightChild);
+    CuAssertIntEquals(tc, 0, getBalanceFactor(l20));
+
+    /* Calling it on an already balanced branch is a no-op. */
+    balanceBranch(l20);
+    CuAssertPtrEquals(tc, l20, root->rightChild);
 }
 
 
@@ -921,13 +1027,17 @@ CuSuite* HFTLobGetSuite(void){
     SUITE_ADD_TEST(suite, TestRotateLR);
     SUITE_ADD_TEST(suite, TestRotateRR);
     SUITE_ADD_TEST(suite, TestRotateRL);
+    SUITE_ADD_TEST(suite, TestBalanceBranch);
+    SUITE_ADD_TEST(suite, TestQueueIsFifo);
+    SUITE_ADD_TEST(suite, TestInitLimitClearsTail);
+    SUITE_ADD_TEST(suite, TestRemoveLimitWithDeepSuccessor);
 
     return suite;
 }
 
 CuSuite* HFTLobGetSuite();
 
-void RunAllTests(void){
+int RunAllTests(void){
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();
 
@@ -937,4 +1047,5 @@ void RunAllTests(void){
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);
     printf("%s\n", output->buffer);
+    return suite->failCount;
 }

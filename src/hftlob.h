@@ -152,6 +152,6 @@ copyLimit(Limit *ptr_src, Limit *ptr_tar);
  * CuTest Functions
  * */
 
-void RunAllTests(void);
+int RunAllTests(void);
 
 #endif
