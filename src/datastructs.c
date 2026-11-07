@@ -6,15 +6,21 @@
 
 void
 pushToQueue(Queue *q, Limit *limit){
+    /**
+     * Enqueue at head (FIFO). Items are dequeued from the tail; each item's
+     * `previous` points to the item enqueued right after it.
+     */
     QueueItem *ptr_newItem = malloc(sizeof(QueueItem));
     ptr_newItem->limit = limit;
+    ptr_newItem->previous = NULL;
 
     if(q->head != NULL){
         q->head->previous = ptr_newItem;
     }
+    else{
+        q->tail = ptr_newItem;
+    }
     q->head = ptr_newItem;
-    ptr_newItem->previous = q->tail;
-    q->tail = ptr_newItem;
     q->size++;
 }
 

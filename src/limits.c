@@ -2,7 +2,7 @@
  * Limit operations
  */
 
- #include <math.h>
+#include <math.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +15,9 @@ createRoot(void){
      * Create a Limit structure as root and return a ptr to it.
      */
     Limit *ptr_limit = malloc(sizeof(Limit));
+    if(ptr_limit == NULL){
+        return NULL;
+    }
     initLimit(ptr_limit);
     ptr_limit->limitPrice = -INFINITY;
     return ptr_limit;
@@ -33,15 +36,15 @@ addNewLimit(Limit *root, Limit *limit){
     }
     limit->leftChild = NULL;
     limit->rightChild = NULL;
-
+    limit->height = 0;
 
     Limit *currentLimit = root;
-    Limit *child;
     while(1){
         if(currentLimit->limitPrice < limit->limitPrice){
             if(currentLimit->rightChild == NULL){
                 currentLimit->rightChild = limit;
                 limit->parent = currentLimit;
+                updateHeightsUpwards(currentLimit);
                 return 1;
             }
             else{
@@ -52,6 +55,7 @@ addNewLimit(Limit *root, Limit *limit){
             if(currentLimit->leftChild == NULL){
                 currentLimit->leftChild = limit;
                 limit->parent = currentLimit;
+                updateHeightsUpwards(currentLimit);
                 return 1;
             }
             else{
@@ -92,66 +96,62 @@ replaceLimitInParent(Limit *limit, Limit *newLimit) {
     }
 }
 
-int
-removeLimit(Limit *limit){
+Limit*
+detachLimit(Limit *limit){
     /**
-     * Remove the given limit from the tree it belongs to.
+     * Remove the given limit from the tree it belongs to, without
+     * rebalancing.
      *
-     * This assumes it IS part of a limit tree.
+     * Returns the lowest limit whose subtree changed (possibly the tree's
+     * root sentinel), so callers can rebalance from there; or NULL if the
+     * limit is a root sentinel and cannot be removed.
      *
      * Python Reference code here:
      *     https://en.wikipedia.org/wiki/Binary_search_tree#Deletion
      */
-    if(!hasGrandpa(limit) && limitIsRoot(limit)){
-        return 0;
+    Limit *changed;
+    if(limitIsRoot(limit)){
+        return NULL;
     }
 
-    Limit *ptr_successor = limit;
     if(limit->leftChild != NULL && limit->rightChild != NULL){
-        /*Limit has two children*/
-        ptr_successor = getMinimumLimit(limit->rightChild);
-        Limit *parent = ptr_successor->parent;
-        Limit *leftChild = ptr_successor->rightChild;
-        Limit *rightChild = ptr_successor->leftChild;
-
-
-        if(limit->leftChild != ptr_successor){
-            ptr_successor->leftChild = limit->leftChild;
-        }
-        else{
-            ptr_successor->leftChild = NULL;
-        }
+        /*Limit has two children: splice in its in-order successor (see #34).*/
+        Limit *ptr_successor = getMinimumLimit(limit->rightChild);
 
         if(limit->rightChild != ptr_successor){
+            changed = ptr_successor->parent;
+            replaceLimitInParent(ptr_successor, ptr_successor->rightChild);
             ptr_successor->rightChild = limit->rightChild;
+            ptr_successor->rightChild->parent = ptr_successor;
         }
         else{
-            ptr_successor->rightChild = NULL;
+            changed = ptr_successor;
         }
-        limit->leftChild = leftChild;
-        limit->rightChild = rightChild;
-        ptr_successor->parent = limit->parent;
-        if(ptr_successor->parent->rightChild==limit){
-            ptr_successor->parent->rightChild = ptr_successor;
-        }
-        else if(ptr_successor->parent->leftChild==limit){
-            ptr_successor->parent->leftChild = ptr_successor;
-        }
-        limit->parent = parent;
 
-        removeLimit(limit);
-    }
-    else if(limit->leftChild != NULL && limit->rightChild == NULL){
-        /*Limit has only left child*/
-        replaceLimitInParent(limit, limit->leftChild);
-    }
-    else if (limit->leftChild == NULL && limit->rightChild != NULL) {
-        /*Limit has only right child*/
-        replaceLimitInParent(limit, limit->rightChild);
+        replaceLimitInParent(limit, ptr_successor);
+        ptr_successor->leftChild = limit->leftChild;
+        ptr_successor->leftChild->parent = ptr_successor;
     }
     else{
-        /*Limit has no children*/
-        replaceLimitInParent(limit, NULL);
+        /*Limit has at most one child*/
+        changed = limit->parent;
+        replaceLimitInParent(limit,
+                limit->leftChild != NULL ? limit->leftChild : limit->rightChild);
     }
-    return 1;
+
+    limit->parent = NULL;
+    limit->leftChild = NULL;
+    limit->rightChild = NULL;
+    limit->height = 0;
+    updateHeightsUpwards(changed);
+    return changed;
+}
+
+int
+removeLimit(Limit *limit){
+    /**
+     * Remove the given limit from the tree it belongs to, without
+     * rebalancing. Returns 1 on success, 0 if limit is a root sentinel.
+     */
+    return detachLimit(limit) != NULL;
 }

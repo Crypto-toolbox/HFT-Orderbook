@@ -1,6 +1,68 @@
 # HFT-Orderbook
 Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in C.
 
+Two flavours live side by side:
+
+- **C** (`src/`): a `Book` API on top of AVL limit trees, order queues and hash maps.
+- **Python** (`lob.py`): a complete, pure-Python `LimitOrderBook`.
+
+## Quick start
+
+**C**: build with CMake, run the tests and the example:
+
+```bash
+cmake -S . -B build          # add -DHFTLOB_SANITIZE=ON for ASan/UBSan
+cmake --build build
+ctest --test-dir build --output-on-failure   # or: ./build/HFT_Orderbook --test
+./build/hftlob_example
+```
+
+Using it looks like this (see [`examples/basic.c`](examples/basic.c)):
+
+```c
+#include "hftlob.h"
+
+Book *book = createBook();
+addOrderToBook(book, 1, HFTLOB_BUY, 5, 100.0);      /* add, with a numeric order id */
+addOrderToBook(book, 2, HFTLOB_SELL, 3, 101.0);
+replaceOrderInBook(book, 1, 2, 100.0);              /* new size: keeps queue spot */
+replaceOrderInBook(book, 1, 2, 99.0);               /* new price: moved, loses queue spot */
+removeOrderFromBook(book, 2);                       /* cancel */
+
+getBestBid(book)->limitPrice;                       /* 99.0 */
+getLimitFromBook(book, HFTLOB_BUY, 99.0)->size;     /* volume at a price: 2.0 */
+
+/* Incoming sell for 5, limit 99: fills 2 against order 1, returns 2.0. */
+executeInBook(book, HFTLOB_SELL, 5, 99.0, NULL, NULL);
+freeBook(book);                                     /* frees every order and level */
+```
+
+A few things worth knowing:
+
+- The book owns its orders. Order ids are `uint64_t` (`OrderId`).
+- `executeInBook` matches in price-time priority (best price, then oldest order). Pass a `FillCallback` to see each fill.
+- What it can't fill is dropped, not rested (immediate-or-cancel). To rest a limit order, add the remainder with `addOrderToBook`. For a market order, use `INFINITY` / `-INFINITY` as the limit.
+
+**Python**: no dependencies, Python 3.9+:
+
+```python
+from lob import LimitOrderBook, Order
+
+book = LimitOrderBook()
+book.process(Order(uid=1, is_bid=True, size=5, price=100))   # add
+book.process(Order(uid=2, is_bid=False, size=3, price=101))
+book.process(Order(uid=1, is_bid=True, size=2, price=100))   # update size
+book.process(Order(uid=1, is_bid=True, size=2, price=99))    # new price: moved, loses queue spot
+book.process(Order(uid=2, is_bid=False, size=0, price=101))  # size 0 = cancel
+
+book.best_bid.price   # 99
+book.levels(depth=5)  # {'bids': [...], 'asks': [...]}
+```
+
+Run the tests with `python -m unittest -v orderbook_tests`.
+
+## Background
+
 Based on WK Selph's Blogpost:
 
 http://howtohft.wordpress.com/2011/02/15/how-to-build-a-fast-limit-order-book/

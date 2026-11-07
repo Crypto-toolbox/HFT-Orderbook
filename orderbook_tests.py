@@ -1,5 +1,6 @@
 # Import Built-Ins
 import logging
+import random
 from unittest import TestCase
 
 # Import Third-Party
@@ -39,7 +40,7 @@ class OrderTests(TestCase):
         self.assertEqual(lob.best_bid.orders.head.size, 4)
         self.assertEqual(lob.best_bid.volume, 400)
 
-        updated_ask_order = Order(uid=2, is_bid=True, size=4, price=200, timestamp=ask_order.timestamp)
+        updated_ask_order = Order(uid=2, is_bid=False, size=4, price=200, timestamp=ask_order.timestamp)
         lob.process(updated_ask_order)
         self.assertEqual(lob.best_ask.orders.head.size, 4)
         self.assertEqual(lob.best_ask.volume, 800)
@@ -125,3 +126,128 @@ class OrderTests(TestCase):
         for side in ('bids', 'asks'):
             self.assertEqual(len(levels[side]), 2)
         
+
+
+class RegressionTests(TestCase):
+
+    def test_cancelling_a_middle_order_relinks_neighbours(self):
+        lob = LimitOrderBook()
+        for uid in (1, 2, 3):
+            lob.process(Order(uid=uid, is_bid=True, size=1, price=100))
+        lob.process(Order(uid=2, is_bid=True, size=0, price=100))
+
+        head = lob.best_bid.orders.head
+        self.assertEqual([head.uid, head.next_item.uid], [1, 3])
+        self.assertIs(head.next_item.previous_item, head)
+        self.assertEqual(len(lob.best_bid), 2)
+        self.assertEqual(lob.best_bid.size, 2)
+
+    def test_best_bid_falls_back_to_next_best_price(self):
+        lob = LimitOrderBook()
+        for uid, price in enumerate([100, 110, 105]):
+            lob.process(Order(uid=uid, is_bid=True, size=1, price=price))
+        lob.process(Order(uid=1, is_bid=True, size=0, price=110))
+        self.assertEqual(lob.best_bid.price, 105)
+
+    def test_best_ask_falls_back_to_next_best_price(self):
+        lob = LimitOrderBook()
+        for uid, price in enumerate([100, 90, 95]):
+            lob.process(Order(uid=uid, is_bid=False, size=1, price=price))
+        lob.process(Order(uid=1, is_bid=False, size=0, price=90))
+        self.assertEqual(lob.best_ask.price, 95)
+
+    def test_levels_with_one_empty_side(self):
+        lob = LimitOrderBook()
+        lob.process(Order(uid=1, is_bid=True, size=1, price=100))
+        levels = lob.levels()
+        self.assertEqual([lvl.price for lvl in levels['bids']], [100])
+        self.assertEqual(levels['asks'], [])
+
+    def test_removing_a_level_with_two_children_keeps_tree_ordered(self):
+        lob = LimitOrderBook()
+        for uid, price in enumerate([100, 50, 150, 120, 200]):
+            lob.process(Order(uid=uid, is_bid=False, size=1, price=price))
+        lob.process(Order(uid=0, is_bid=False, size=0, price=100))
+        self.assertEqual(_in_order(lob.asks.right_child), [50, 120, 150, 200])
+
+
+    def test_price_change_moves_order_to_new_level(self):
+        lob = LimitOrderBook()
+        lob.process(Order(uid=1, is_bid=True, size=5, price=100))
+        lob.process(Order(uid=2, is_bid=True, size=3, price=105))
+        lob.process(Order(uid=3, is_bid=True, size=4, price=105))
+
+        # Move uid 1 up to 105: it joins the back of the queue there.
+        lob.process(Order(uid=1, is_bid=True, size=5, price=105))
+        self.assertNotIn(100, lob._price_levels)
+        self.assertEqual(lob.best_bid.price, 105)
+        self.assertEqual(lob.best_bid.size, 12)
+        self.assertIs(lob.best_bid.orders.tail, lob._orders[1])
+
+        # Move uid 2 down to 99: best bid stays, sizes follow.
+        lob.process(Order(uid=2, is_bid=True, size=3, price=99))
+        self.assertEqual(lob.best_bid.price, 105)
+        self.assertEqual(lob.best_bid.size, 9)
+        self.assertEqual(lob._price_levels[99].size, 3)
+
+    def test_side_change_moves_order_to_other_tree(self):
+        lob = LimitOrderBook()
+        lob.process(Order(uid=1, is_bid=True, size=5, price=100))
+        lob.process(Order(uid=1, is_bid=False, size=5, price=100))
+        self.assertIsNone(lob.best_bid)
+        self.assertEqual(lob.best_ask.price, 100)
+
+
+def _in_order(node):
+    if node is None:
+        return []
+    return _in_order(node.left_child) + [node.price] + _in_order(node.right_child)
+
+
+class RandomisedInvariantTests(TestCase):
+    """Hammer the book with random adds/cancels and check its invariants."""
+
+    def _check_tree(self, tree):
+        def check(node, parent):
+            if node is None:
+                return 0
+            self.assertIs(node.parent, parent)
+            left = check(node.left_child, node)
+            right = check(node.right_child, node)
+            self.assertLessEqual(abs(right - left), 1, 'AVL balance violated')
+            self.assertEqual(node.height, max(left, right) + 1, 'stale cached height')
+            return max(left, right) + 1
+
+        check(tree.right_child, tree)
+        prices = _in_order(tree.right_child)
+        self.assertEqual(prices, sorted(set(prices)))
+        return prices
+
+    def test_random_order_flow(self):
+        rng = random.Random(42)
+        lob = LimitOrderBook()
+        live = {}
+        for uid in range(5000):
+            if live and rng.random() < 0.15:
+                move_uid = rng.choice(list(live))
+                is_bid, _ = live[move_uid]
+                price = rng.randint(1, 60) + (0 if is_bid else 60)
+                lob.process(Order(uid=move_uid, is_bid=is_bid, size=rng.randint(1, 10), price=price))
+                live[move_uid] = (is_bid, price)
+            elif live and rng.random() < 0.45:
+                cancel_uid = rng.choice(list(live))
+                is_bid, price = live.pop(cancel_uid)
+                lob.process(Order(uid=cancel_uid, is_bid=is_bid, size=0, price=price))
+            else:
+                is_bid = rng.random() < 0.5
+                price = rng.randint(1, 60) + (0 if is_bid else 60)
+                lob.process(Order(uid=uid, is_bid=is_bid, size=rng.randint(1, 10), price=price))
+                live[uid] = (is_bid, price)
+
+            bids = self._check_tree(lob.bids)
+            asks = self._check_tree(lob.asks)
+            self.assertEqual(lob.best_bid.price if lob.best_bid else None,
+                             bids[-1] if bids else None)
+            self.assertEqual(lob.best_ask.price if lob.best_ask else None,
+                             asks[0] if asks else None)
+            self.assertEqual(len(lob._orders), len(live))

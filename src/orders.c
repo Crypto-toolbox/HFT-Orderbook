@@ -62,14 +62,22 @@ popOrder(Limit *limit){
         limit->totalVolume = 0;
     }
 
+    ptr_poppedOrder->nextOrder = NULL;
+    ptr_poppedOrder->prevOrder = NULL;
+    ptr_poppedOrder->parentLimit = NULL;
     return ptr_poppedOrder;
 }
 
 int
 removeOrder(Order *order){
     /**
-     * Remove the order from where it is at.
+     * Remove the order from where it is at, keeping the parent limit's
+     * orderCount, size and totalVolume in sync.
      */
+    Limit *limit = order->parentLimit;
+    if(limit == NULL){
+        return -1;
+    }
     if(order->parentLimit->headOrder == order && order->parentLimit->tailOrder == order){
         /* Head and Tail are identical, set both to NULL and be done with it.*/
         order->parentLimit->headOrder = NULL;
@@ -94,5 +102,11 @@ removeOrder(Order *order){
         return -1;
     }
 
+    limit->orderCount--;
+    limit->size -= order->shares;
+    limit->totalVolume -= order->shares * limit->limitPrice;
+    order->nextOrder = NULL;
+    order->prevOrder = NULL;
+    order->parentLimit = NULL;
     return 1;
 }

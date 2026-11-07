@@ -1,24 +1,43 @@
-cmake_minimum_required(VERSION 2.8)
-project(HFT_Orderbook)
+cmake_minimum_required(VERSION 3.10)
+project(HFT_Orderbook C)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(SOURCE_FILES
-        src/hftlob.h
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+option(HFTLOB_SANITIZE "Build with AddressSanitizer and UBSan" OFF)
+if(HFTLOB_SANITIZE)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
+# The order book itself, as a static library.
+add_library(hftlob STATIC
         src/datastructs.c
         src/limits.c
         src/orders.c
         src/bst.c
         src/utils.c
+        src/hashmap.c
+        src/book.c)
+target_include_directories(hftlob PUBLIC src)
+target_compile_options(hftlob PRIVATE -Wall -Wextra)
+target_link_libraries(hftlob PUBLIC m)
+
+# Test runner: `./HFT_Orderbook --test`
+add_executable(HFT_Orderbook
         src/main.c
-        src/CuTest.h
         src/CuTest.c
-        src/testCases.c
-        LICENSE
-        lob.py
-        orderbook_tests.py
-        README.md)
+        src/testCases.c)
+target_link_libraries(HFT_Orderbook PRIVATE hftlob)
 
-add_executable(HFT_Orderbook ${SOURCE_FILES})
+enable_testing()
+add_test(NAME cutest COMMAND HFT_Orderbook --test)
 
-set(CMAKE_BUILD_TYPE Debug)
+# Example program: `./hftlob_example`
+add_executable(hftlob_example examples/basic.c)
+target_link_libraries(hftlob_example PRIVATE hftlob)
+add_test(NAME example COMMAND hftlob_example)
