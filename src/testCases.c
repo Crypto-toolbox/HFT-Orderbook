@@ -999,6 +999,104 @@ TestBalanceBranch(CuTest *tc){
 
 
 
+
+/**
+ * Hash map and pool tests.
+ */
+
+void
+TestMapBasics(CuTest *tc){
+    HashMap map;
+    int a = 1, b = 2;
+    CuAssertIntEquals(tc, 1, initMap(&map, 0));
+    CuAssertPtrEquals(tc, NULL, mapGet(&map, 42));
+    CuAssertIntEquals(tc, 1, mapPut(&map, 42, &a));
+    CuAssertIntEquals(tc, 1, mapPut(&map, 0, &b));          /* key 0 is valid */
+    CuAssertIntEquals(tc, 1, mapPut(&map, UINT64_MAX, &b));
+    CuAssertPtrEquals(tc, &a, mapGet(&map, 42));
+    CuAssertPtrEquals(tc, &b, mapGet(&map, 0));
+    CuAssertIntEquals(tc, 1, mapPut(&map, 42, &b));         /* overwrite */
+    CuAssertPtrEquals(tc, &b, mapGet(&map, 42));
+    CuAssertIntEquals(tc, 3, (int)map.size);
+    CuAssertIntEquals(tc, 0, mapPut(&map, 7, NULL));        /* NULL values refused */
+    CuAssertPtrEquals(tc, &b, mapRemove(&map, 42));
+    CuAssertPtrEquals(tc, NULL, mapRemove(&map, 42));
+    CuAssertPtrEquals(tc, NULL, mapGet(&map, 42));
+    CuAssertIntEquals(tc, 2, (int)map.size);
+    freeMap(&map);
+}
+
+void
+TestMapRandomAgainstReference(CuTest *tc){
+    /**
+     * Random puts/removes over a small key space (lots of probe-run
+     * collisions and backward shifts), checked against a plain array.
+     */
+    enum { KEYS = 2000, OPS = 30000 };
+    static int values[KEYS];
+    static int present[KEYS];
+    HashMap map;
+    int op, k, count = 0;
+    initMap(&map, 0);
+    srand(7);
+    for(op = 0; op < OPS; ++op){
+        k = rand() % KEYS;
+        if(rand() % 3 == 0){
+            void *removed = mapRemove(&map, (uint64_t)k * 1000003u);
+            CuAssertPtrEquals(tc, present[k] ? &values[k] : NULL, removed);
+            count -= present[k];
+            present[k] = 0;
+        }
+        else{
+            CuAssertIntEquals(tc, 1, mapPut(&map, (uint64_t)k * 1000003u, &values[k]));
+            count += !present[k];
+            present[k] = 1;
+        }
+        CuAssertIntEquals(tc, count, (int)map.size);
+        CuAssertTrue(tc, map.size * 2 <= map.capacity);
+    }
+    for(k = 0; k < KEYS; ++k){
+        CuAssertPtrEquals(tc, present[k] ? &values[k] : NULL,
+                          mapGet(&map, (uint64_t)k * 1000003u));
+    }
+    freeMap(&map);
+}
+
+void
+TestPoolReuseAndGrowth(CuTest *tc){
+    enum { N = 1000 };
+    static Order *objs[N];
+    Pool pool;
+    int i, j;
+    initPool(&pool, sizeof(Order));
+
+    /* Many allocations across several slabs: all distinct and aligned. */
+    for(i = 0; i < N; ++i){
+        objs[i] = poolAlloc(&pool);
+        CuAssertPtrNotNull(tc, objs[i]);
+        CuAssertTrue(tc, ((uintptr_t)objs[i] % 16) == 0);
+        initOrder(objs[i]);
+        objs[i]->id = (OrderId)i;
+    }
+    for(i = 0; i < N; i += 97){
+        for(j = i + 1; j < N; j += 89){
+            CuAssertTrue(tc, objs[i] != objs[j]);
+        }
+    }
+    for(i = 0; i < N; ++i){
+        CuAssertTrue(tc, objs[i]->id == (OrderId)i);
+    }
+
+    /* LIFO reuse: the most recently freed object comes back first. */
+    poolFree(&pool, objs[10]);
+    poolFree(&pool, objs[20]);
+    CuAssertPtrEquals(tc, objs[20], poolAlloc(&pool));
+    CuAssertPtrEquals(tc, objs[10], poolAlloc(&pool));
+    poolFree(&pool, NULL);
+    destroyPool(&pool);
+    CuAssertPtrEquals(tc, NULL, pool.slabs);
+}
+
 /**
  * Book API tests.
  */
@@ -1378,6 +1476,9 @@ CuSuite* HFTLobGetSuite(void){
     SUITE_ADD_TEST(suite, TestQueueIsFifo);
     SUITE_ADD_TEST(suite, TestInitLimitClearsTail);
     SUITE_ADD_TEST(suite, TestRemoveLimitWithDeepSuccessor);
+    SUITE_ADD_TEST(suite, TestMapBasics);
+    SUITE_ADD_TEST(suite, TestMapRandomAgainstReference);
+    SUITE_ADD_TEST(suite, TestPoolReuseAndGrowth);
     SUITE_ADD_TEST(suite, TestBookAddAndBestPrices);
     SUITE_ADD_TEST(suite, TestBookRejectsInvalidOrders);
     SUITE_ADD_TEST(suite, TestBookRemove);

@@ -51,19 +51,25 @@ typedef struct Queue{
     QueueItem *tail;
 } Queue;
 
-typedef struct MapEntry{
-    void *key;
-    size_t keyLen;
-    uint64_t hash;
-    void *value;
-    struct MapEntry *next;
-} MapEntry;
+typedef struct MapSlot{
+    uint64_t key;
+    void *value;            /* NULL marks an empty slot */
+} MapSlot;
 
+/* Open-addressing hash map: uint64_t keys, non-NULL pointer values. */
 typedef struct HashMap{
-    MapEntry **buckets;
-    size_t capacity;
+    MapSlot *slots;
+    size_t capacity;        /* power of two */
     size_t size;
 } HashMap;
+
+/* Fixed-size object pool with a free list; see pool.c. */
+typedef struct Pool{
+    size_t objSize;
+    size_t nextSlabObjects;
+    void *freeList;
+    struct PoolSlab *slabs;
+} Pool;
 
 /**
  * Called once per fill by executeInBook(), before the resting order is
@@ -87,8 +93,10 @@ typedef struct Book{
     Limit *highestBuy;      /* best bid, or NULL */
     Limit *lowestSell;      /* best ask, or NULL */
     HashMap orders;         /* id -> Order* */
-    HashMap buyLimits;      /* price -> Limit* */
-    HashMap sellLimits;     /* price -> Limit* */
+    HashMap buyLimits;      /* price bits -> Limit* */
+    HashMap sellLimits;     /* price bits -> Limit* */
+    Pool orderPool;         /* storage for this book's Orders */
+    Pool limitPool;         /* storage for this book's Limits */
 } Book;
 
 /**
@@ -130,13 +138,29 @@ void
 freeMap(HashMap *map);
 
 void*
-mapGet(const HashMap *map, const void *key, size_t keyLen);
+mapGet(const HashMap *map, uint64_t key);
 
 int
-mapPut(HashMap *map, const void *key, size_t keyLen, void *value);
+mapPut(HashMap *map, uint64_t key, void *value);
 
 void*
-mapRemove(HashMap *map, const void *key, size_t keyLen);
+mapRemove(HashMap *map, uint64_t key);
+
+/**
+ * OBJECT POOL FUNCTIONS
+ */
+
+void
+initPool(Pool *pool, size_t objSize);
+
+void*
+poolAlloc(Pool *pool);
+
+void
+poolFree(Pool *pool, void *obj);
+
+void
+destroyPool(Pool *pool);
 
 /**
  * BOOK FUNCTIONS
