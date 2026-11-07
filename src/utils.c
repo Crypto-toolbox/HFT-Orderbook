@@ -14,7 +14,7 @@ by being more descriptive.
 
 void
 initOrder(Order *order){
-    order->tid = NULL;
+    order->id = 0;
     order->buyOrSell = 0;
     order->shares = 0;
     order->limit = 0;

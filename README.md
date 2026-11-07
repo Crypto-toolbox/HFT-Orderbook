@@ -23,18 +23,25 @@ Using it looks like this (see [`examples/basic.c`](examples/basic.c)):
 #include "hftlob.h"
 
 Book *book = createBook();
-addOrderToBook(book, "a", HFTLOB_BUY, 5, 100.0);    /* add */
-addOrderToBook(book, "b", HFTLOB_SELL, 3, 101.0);
-replaceOrderInBook(book, "a", 2, 100.0);            /* new size: keeps queue spot */
-replaceOrderInBook(book, "a", 2, 99.0);             /* new price: moved, loses queue spot */
-removeOrderFromBook(book, "b");                     /* cancel */
+addOrderToBook(book, 1, HFTLOB_BUY, 5, 100.0);      /* add, with a numeric order id */
+addOrderToBook(book, 2, HFTLOB_SELL, 3, 101.0);
+replaceOrderInBook(book, 1, 2, 100.0);              /* new size: keeps queue spot */
+replaceOrderInBook(book, 1, 2, 99.0);               /* new price: moved, loses queue spot */
+removeOrderFromBook(book, 2);                       /* cancel */
 
 getBestBid(book)->limitPrice;                       /* 99.0 */
 getLimitFromBook(book, HFTLOB_BUY, 99.0)->size;     /* volume at a price: 2.0 */
+
+/* Incoming sell for 5, limit 99: fills 2 against order 1, returns 2.0. */
+executeInBook(book, HFTLOB_SELL, 5, 99.0, NULL, NULL);
 freeBook(book);                                     /* frees every order and level */
 ```
 
-The book owns its orders and copies their ids. Order ids are strings.
+A few things worth knowing:
+
+- The book owns its orders. Order ids are `uint64_t` (`OrderId`).
+- `executeInBook` matches in price-time priority (best price, then oldest order). Pass a `FillCallback` to see each fill.
+- What it can't fill is dropped, not rested (immediate-or-cancel). To rest a limit order, add the remainder with `addOrderToBook`. For a market order, use `INFINITY` / `-INFINITY` as the limit.
 
 **Python**: no dependencies, Python 3.9+:
 

@@ -84,7 +84,7 @@ TestOrderPushing(CuTest *tc){
     newOrderA.limit = 1000.0;
     newOrderA.shares = 10;
     newOrderA.buyOrSell = 0;
-    newOrderA.tid = "1234";
+    newOrderA.id = 1234;
 
     float expected_volume = 0.0;
     float expected_size = 0;
@@ -120,7 +120,7 @@ TestOrderPushing(CuTest *tc){
     newOrderB.limit = 1000.0;
     newOrderB.shares = 20;
     newOrderB.buyOrSell = 0;
-    newOrderB.tid = "1235";
+    newOrderB.id = 1235;
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderB);
     CuAssertIntEquals(tc, 1, returnCode);
@@ -149,7 +149,7 @@ TestOrderPushing(CuTest *tc){
     newOrderC.limit = 1000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = "1236";
+    newOrderC.id = 1236;
 
     returnCode = pushOrder(ptr_limit, ptr_newOrderC);
     CuAssertIntEquals(tc, 1, returnCode);
@@ -185,7 +185,7 @@ TestOrderPushing(CuTest *tc){
     newOrderC.limit = 2000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = "1236";
+    newOrderC.id = 1236;
     returnCode = pushOrder(ptr_limit, ptr_newOrderD);
     CuAssertIntEquals(tc, 0, returnCode);
 }
@@ -203,7 +203,7 @@ TestOrderPopping(CuTest *tc){
     newOrderA.limit = 1000.0;
     newOrderA.shares = 10;
     newOrderA.buyOrSell = 0;
-    newOrderA.tid = "1234";
+    newOrderA.id = 1234;
 
     Order newOrderB;
     Order *ptr_newOrderB = &newOrderB;
@@ -211,7 +211,7 @@ TestOrderPopping(CuTest *tc){
     newOrderB.limit = 1000.0;
     newOrderB.shares = 20;
     newOrderB.buyOrSell = 0;
-    newOrderB.tid = "1235";
+    newOrderB.id = 1235;
 
     Order newOrderC;
     Order *ptr_newOrderC = &newOrderC;
@@ -219,7 +219,7 @@ TestOrderPopping(CuTest *tc){
     newOrderC.limit = 1000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = "1236";
+    newOrderC.id = 1236;
 
     pushOrder(ptr_limit, ptr_newOrderA);
     pushOrder(ptr_limit, ptr_newOrderB);
@@ -304,7 +304,7 @@ TestRemoveOrder(CuTest *tc){
     newOrderA.limit = 1000.0;
     newOrderA.shares = 10;
     newOrderA.buyOrSell = 0;
-    newOrderA.tid = "1234";
+    newOrderA.id = 1234;
 
     Order newOrderB;
     Order *ptr_newOrderB = &newOrderB;
@@ -312,7 +312,7 @@ TestRemoveOrder(CuTest *tc){
     newOrderB.limit = 1000.0;
     newOrderB.shares = 20;
     newOrderB.buyOrSell = 0;
-    newOrderB.tid = "1235";
+    newOrderB.id = 1235;
 
     Order newOrderC;
     Order *ptr_newOrderC = &newOrderC;
@@ -320,7 +320,7 @@ TestRemoveOrder(CuTest *tc){
     newOrderC.limit = 1000.0;
     newOrderC.shares = 30;
     newOrderC.buyOrSell = 0;
-    newOrderC.tid = "1236";
+    newOrderC.id = 1236;
 
     int returnCode = 0;
 
@@ -1010,11 +1010,11 @@ TestBookAddAndBestPrices(CuTest *tc){
     CuAssertPtrEquals(tc, NULL, getBestBid(book));
     CuAssertPtrEquals(tc, NULL, getBestAsk(book));
 
-    Order *a = addOrderToBook(book, "a", HFTLOB_BUY, 5, 100.0);
-    Order *b = addOrderToBook(book, "b", HFTLOB_BUY, 3, 101.0);
-    Order *c = addOrderToBook(book, "c", HFTLOB_BUY, 2, 101.0);
-    Order *d = addOrderToBook(book, "d", HFTLOB_SELL, 4, 103.0);
-    Order *e = addOrderToBook(book, "e", HFTLOB_SELL, 1, 102.0);
+    Order *a = addOrderToBook(book, 1, HFTLOB_BUY, 5, 100.0);
+    Order *b = addOrderToBook(book, 2, HFTLOB_BUY, 3, 101.0);
+    Order *c = addOrderToBook(book, 3, HFTLOB_BUY, 2, 101.0);
+    Order *d = addOrderToBook(book, 4, HFTLOB_SELL, 4, 103.0);
+    Order *e = addOrderToBook(book, 5, HFTLOB_SELL, 1, 102.0);
     CuAssertPtrNotNull(tc, a);
     CuAssertPtrNotNull(tc, b);
     CuAssertPtrNotNull(tc, c);
@@ -1032,13 +1032,12 @@ TestBookAddAndBestPrices(CuTest *tc){
     CuAssertPtrEquals(tc, b, l101->tailOrder);
     CuAssertPtrEquals(tc, c, l101->headOrder);
 
-    /* Lookups, and the book owns a copy of the id. */
-    char tid[] = "z";
-    Order *z = addOrderToBook(book, tid, HFTLOB_SELL, 1, 110.0);
-    tid[0] = 'y';
-    CuAssertPtrEquals(tc, z, getOrderFromBook(book, "z"));
-    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, "y"));
-    CuAssertStrEquals(tc, "z", z->tid);
+    /* Lookups by id; ids use the full 64-bit range. */
+    OrderId bigId = UINT64_MAX;
+    Order *z = addOrderToBook(book, bigId, HFTLOB_SELL, 1, 110.0);
+    CuAssertPtrEquals(tc, z, getOrderFromBook(book, bigId));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, 25));
+    CuAssertTrue(tc, z->id == bigId);
     CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_SELL, 101.0));
 
     freeBook(book);
@@ -1047,38 +1046,37 @@ TestBookAddAndBestPrices(CuTest *tc){
 void
 TestBookRejectsInvalidOrders(CuTest *tc){
     Book *book = createBook();
-    CuAssertPtrNotNull(tc, addOrderToBook(book, "a", HFTLOB_BUY, 1, 100.0));
-    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "a", HFTLOB_SELL, 1, 105.0));
-    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, NULL, HFTLOB_BUY, 1, 100.0));
-    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "b", 7, 1, 100.0));
-    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "b", HFTLOB_BUY, 0, 100.0));
-    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "b", HFTLOB_BUY, 1, NAN));
+    CuAssertPtrNotNull(tc, addOrderToBook(book, 1, HFTLOB_BUY, 1, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, 1, HFTLOB_SELL, 1, 105.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, 2, 7, 1, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, 2, HFTLOB_BUY, 0, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, 2, HFTLOB_BUY, 1, NAN));
     CuAssertIntEquals(tc, 1, (int)book->orders.size);
-    CuAssertIntEquals(tc, 0, removeOrderFromBook(book, "nope"));
-    CuAssertIntEquals(tc, 0, replaceOrderInBook(book, "nope", 1, 1));
-    CuAssertIntEquals(tc, -1, replaceOrderInBook(book, "a", 1, NAN));
+    CuAssertIntEquals(tc, 0, removeOrderFromBook(book, 999));
+    CuAssertIntEquals(tc, 0, replaceOrderInBook(book, 999, 1, 1));
+    CuAssertIntEquals(tc, -1, replaceOrderInBook(book, 1, 1, NAN));
     freeBook(book);
 }
 
 void
 TestBookRemove(CuTest *tc){
     Book *book = createBook();
-    addOrderToBook(book, "a", HFTLOB_BUY, 5, 100.0);
-    addOrderToBook(book, "b", HFTLOB_BUY, 3, 101.0);
-    addOrderToBook(book, "c", HFTLOB_BUY, 2, 101.0);
+    addOrderToBook(book, 1, HFTLOB_BUY, 5, 100.0);
+    addOrderToBook(book, 2, HFTLOB_BUY, 3, 101.0);
+    addOrderToBook(book, 3, HFTLOB_BUY, 2, 101.0);
 
     /* Removing one of two orders keeps the level. */
-    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, "b"));
-    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, "b"));
+    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, 2));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, 2));
     CuAssertDblEquals(tc, 101.0, getBestBid(book)->limitPrice, 0.0);
     CuAssertDblEquals(tc, 2.0, getBestBid(book)->size, 0.0);
 
     /* Emptying the best level falls back to the next best price. */
-    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, "c"));
+    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, 3));
     CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_BUY, 101.0));
     CuAssertDblEquals(tc, 100.0, getBestBid(book)->limitPrice, 0.0);
 
-    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, "a"));
+    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, 1));
     CuAssertPtrEquals(tc, NULL, getBestBid(book));
     CuAssertPtrEquals(tc, NULL, book->buyTree->rightChild);
     CuAssertIntEquals(tc, 0, (int)book->orders.size);
@@ -1088,11 +1086,11 @@ TestBookRemove(CuTest *tc){
 void
 TestBookReplace(CuTest *tc){
     Book *book = createBook();
-    Order *a = addOrderToBook(book, "a", HFTLOB_SELL, 5, 100.0);
-    Order *b = addOrderToBook(book, "b", HFTLOB_SELL, 3, 100.0);
+    Order *a = addOrderToBook(book, 1, HFTLOB_SELL, 5, 100.0);
+    Order *b = addOrderToBook(book, 2, HFTLOB_SELL, 3, 100.0);
 
     /* Size change: in place, queue position kept. */
-    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "a", 2, 100.0));
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, 1, 2, 100.0));
     Limit *l100 = getLimitFromBook(book, HFTLOB_SELL, 100.0);
     CuAssertDblEquals(tc, 2.0, a->shares, 0.0);
     CuAssertDblEquals(tc, 5.0, l100->size, 0.0);
@@ -1100,9 +1098,9 @@ TestBookReplace(CuTest *tc){
     CuAssertPtrEquals(tc, a, l100->tailOrder);
 
     /* Price change: same Order moves to the back of its new level. */
-    addOrderToBook(book, "c", HFTLOB_SELL, 1, 99.0);
-    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "a", 2, 99.0));
-    CuAssertPtrEquals(tc, a, getOrderFromBook(book, "a"));
+    addOrderToBook(book, 3, HFTLOB_SELL, 1, 99.0);
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, 1, 2, 99.0));
+    CuAssertPtrEquals(tc, a, getOrderFromBook(book, 1));
     CuAssertDblEquals(tc, 99.0, a->limit, 0.0);
     Limit *l99 = getLimitFromBook(book, HFTLOB_SELL, 99.0);
     CuAssertPtrEquals(tc, l99, a->parentLimit);
@@ -1112,13 +1110,13 @@ TestBookReplace(CuTest *tc){
     CuAssertPtrEquals(tc, b, l100->tailOrder);
 
     /* Moving the last order off a level removes the level. */
-    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "b", 3, 98.0));
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, 2, 3, 98.0));
     CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_SELL, 100.0));
     CuAssertDblEquals(tc, 98.0, getBestAsk(book)->limitPrice, 0.0);
 
     /* Zero size cancels. */
-    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "b", 0, 98.0));
-    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, "b"));
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, 2, 0, 98.0));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, 2));
     CuAssertDblEquals(tc, 99.0, getBestAsk(book)->limitPrice, 0.0);
     freeBook(book);
 }
@@ -1127,16 +1125,110 @@ void
 TestBookRotationsKeepParentLinks(CuTest *tc){
     /* Ascending prices force repeated rotations involving subtrees. */
     Book *book = createBook();
-    char tid[16];
     int i;
     for(i = 0; i < 64; ++i){
-        snprintf(tid, sizeof(tid), "%d", i);
-        addOrderToBook(book, tid, HFTLOB_BUY, 1, (double)i);
+        addOrderToBook(book, (OrderId)i, HFTLOB_BUY, 1, (double)i);
     }
     Limit *top = book->buyTree->rightChild;
     CuAssertIntEquals(tc, 6, top->height);
     CuAssertIntEquals(tc, 6, getHeight(top));
     CuAssertDblEquals(tc, 63.0, getBestBid(book)->limitPrice, 0.0);
+    freeBook(book);
+}
+
+
+typedef struct FillLog{
+    int count;
+    OrderId ids[16];
+    double shares[16];
+    double prices[16];
+} FillLog;
+
+static void
+recordFill(const Order *resting, double shares, double price, void *ctx){
+    FillLog *log = ctx;
+    if(log->count < 16){
+        log->ids[log->count] = resting->id;
+        log->shares[log->count] = shares;
+        log->prices[log->count] = price;
+    }
+    log->count++;
+}
+
+void
+TestBookExecuteBuy(CuTest *tc){
+    Book *book = createBook();
+    FillLog log = {0};
+    addOrderToBook(book, 1, HFTLOB_SELL, 5, 101.0);
+    addOrderToBook(book, 2, HFTLOB_SELL, 3, 101.0);   /* behind 1 in the queue */
+    addOrderToBook(book, 3, HFTLOB_SELL, 4, 102.0);
+    addOrderToBook(book, 4, HFTLOB_SELL, 9, 105.0);
+    addOrderToBook(book, 5, HFTLOB_BUY, 9, 100.0);    /* own side: untouched */
+
+    /* Buy 10 up to 102: fills 1 (5) and 2 (3) at 101, then 2 of 3 at 102. */
+    double filled = executeInBook(book, HFTLOB_BUY, 10, 102.0, recordFill, &log);
+    CuAssertDblEquals(tc, 10.0, filled, 0.0);
+    CuAssertIntEquals(tc, 3, log.count);
+    CuAssertTrue(tc, log.ids[0] == 1 && log.ids[1] == 2 && log.ids[2] == 3);
+    CuAssertDblEquals(tc, 5.0, log.shares[0], 0.0);
+    CuAssertDblEquals(tc, 3.0, log.shares[1], 0.0);
+    CuAssertDblEquals(tc, 2.0, log.shares[2], 0.0);
+    CuAssertDblEquals(tc, 101.0, log.prices[0], 0.0);
+    CuAssertDblEquals(tc, 102.0, log.prices[2], 0.0);
+
+    /* Fully filled orders and the emptied level are gone; 3 is reduced. */
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, 1));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, 2));
+    CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_SELL, 101.0));
+    CuAssertDblEquals(tc, 2.0, getOrderFromBook(book, 3)->shares, 0.0);
+    CuAssertDblEquals(tc, 102.0, getBestAsk(book)->limitPrice, 0.0);
+    CuAssertDblEquals(tc, 2.0, getBestAsk(book)->size, 0.0);
+    CuAssertDblEquals(tc, 204.0, getBestAsk(book)->totalVolume, 0.0);
+    CuAssertDblEquals(tc, 9.0, getBestBid(book)->size, 0.0);
+
+    /* Limit price stops matching: best ask 102 is above 101.5. */
+    log.count = 0;
+    filled = executeInBook(book, HFTLOB_BUY, 50, 101.5, recordFill, &log);
+    CuAssertDblEquals(tc, 0.0, filled, 0.0);
+    CuAssertIntEquals(tc, 0, log.count);
+
+    /* Market buy larger than the book: takes everything, returns the fill. */
+    filled = executeInBook(book, HFTLOB_BUY, 50, INFINITY, NULL, NULL);
+    CuAssertDblEquals(tc, 11.0, filled, 0.0);
+    CuAssertPtrEquals(tc, NULL, getBestAsk(book));
+    CuAssertIntEquals(tc, 1, (int)book->orders.size);
+    freeBook(book);
+}
+
+void
+TestBookExecuteSell(CuTest *tc){
+    Book *book = createBook();
+    addOrderToBook(book, 1, HFTLOB_BUY, 5, 99.0);
+    addOrderToBook(book, 2, HFTLOB_BUY, 5, 100.0);
+    addOrderToBook(book, 3, HFTLOB_BUY, 5, 98.0);
+
+    /* Sell 7 down to 99: 5 at 100, then 2 at 99. 98 is out of range. */
+    CuAssertDblEquals(tc, 7.0, executeInBook(book, HFTLOB_SELL, 7, 99.0, NULL, NULL), 0.0);
+    CuAssertDblEquals(tc, 99.0, getBestBid(book)->limitPrice, 0.0);
+    CuAssertDblEquals(tc, 3.0, getBestBid(book)->size, 0.0);
+    CuAssertDblEquals(tc, 3.0, executeInBook(book, HFTLOB_SELL, 10, 99.0, NULL, NULL), 0.0);
+    CuAssertDblEquals(tc, 98.0, getBestBid(book)->limitPrice, 0.0);
+
+    /* Market sell. */
+    CuAssertDblEquals(tc, 5.0, executeInBook(book, HFTLOB_SELL, 10, -INFINITY, NULL, NULL), 0.0);
+    CuAssertPtrEquals(tc, NULL, getBestBid(book));
+    freeBook(book);
+}
+
+void
+TestBookExecuteRejectsInvalidInput(CuTest *tc){
+    Book *book = createBook();
+    addOrderToBook(book, 1, HFTLOB_SELL, 5, 101.0);
+    CuAssertDblEquals(tc, 0.0, executeInBook(book, 7, 1, INFINITY, NULL, NULL), 0.0);
+    CuAssertDblEquals(tc, 0.0, executeInBook(book, HFTLOB_BUY, 0, INFINITY, NULL, NULL), 0.0);
+    CuAssertDblEquals(tc, 0.0, executeInBook(book, HFTLOB_BUY, -1, INFINITY, NULL, NULL), 0.0);
+    CuAssertDblEquals(tc, 0.0, executeInBook(book, HFTLOB_BUY, 1, NAN, NULL, NULL), 0.0);
+    CuAssertDblEquals(tc, 5.0, getBestAsk(book)->size, 0.0);
     freeBook(book);
 }
 
@@ -1193,35 +1285,55 @@ void
 TestBookRandomOrderFlow(CuTest *tc){
     enum { OPS = 20000, MAX_LIVE = 4096 };
     Book *book = createBook();
-    char *live[MAX_LIVE];
+    OrderId live[MAX_LIVE];
     int liveCount = 0;
     int op;
-    char tid[16];
     srand(42);
 
     for(op = 0; op < OPS; ++op){
         int roll = rand() % 100;
-        if(liveCount > 0 && roll < 15){
+        if(liveCount > 0 && roll < 8){
+            /* execute: random side, size and limit, then drop filled ids */
+            unsigned side = rand() % 2 ? HFTLOB_BUY : HFTLOB_SELL;
+            double limitPrice = 1 + rand() % 120;
+            double want = 1 + rand() % 40;
+            double before = 0, after = 0;
+            int i, kept = 0;
+            Limit *best = side == HFTLOB_BUY ? getBestAsk(book) : getBestBid(book);
+            if(best != NULL){
+                before = best->size;
+            }
+            double filled = executeInBook(book, side, want, limitPrice, NULL, NULL);
+            CuAssertTrue(tc, filled >= 0 && filled <= want);
+            if(best != NULL && filled > 0 && filled < before){
+                after = (side == HFTLOB_BUY ? getBestAsk(book) : getBestBid(book))->size;
+                CuAssertDblEquals(tc, before - filled, after, 1e-9);
+            }
+            for(i = 0; i < liveCount; ++i){
+                if(getOrderFromBook(book, live[i]) != NULL){
+                    live[kept++] = live[i];
+                }
+            }
+            liveCount = kept;
+        }
+        else if(liveCount > 0 && roll < 20){
             /* replace: new size and/or price */
             Order *order = getOrderFromBook(book, live[rand() % liveCount]);
             double price = (rand() % 60) + (order->buyOrSell == HFTLOB_BUY ? 1 : 61);
-            CuAssertIntEquals(tc, 1, replaceOrderInBook(book, order->tid, 1 + rand() % 10, price));
+            CuAssertIntEquals(tc, 1, replaceOrderInBook(book, order->id, 1 + rand() % 10, price));
         }
-        else if(liveCount > 0 && (roll < 55 || liveCount == MAX_LIVE)){
+        else if(liveCount > 0 && (roll < 58 || liveCount == MAX_LIVE)){
             /* cancel */
             int idx = rand() % liveCount;
             CuAssertIntEquals(tc, 1, removeOrderFromBook(book, live[idx]));
-            free(live[idx]);
             live[idx] = live[--liveCount];
         }
         else{
             /* add */
             unsigned side = rand() % 2 ? HFTLOB_BUY : HFTLOB_SELL;
             double price = (rand() % 60) + (side == HFTLOB_BUY ? 1 : 61);
-            snprintf(tid, sizeof(tid), "o%d", op);
-            CuAssertPtrNotNull(tc, addOrderToBook(book, tid, side, 1 + rand() % 10, price));
-            live[liveCount] = malloc(strlen(tid) + 1);
-            strcpy(live[liveCount++], tid);
+            CuAssertPtrNotNull(tc, addOrderToBook(book, (OrderId)op, side, 1 + rand() % 10, price));
+            live[liveCount++] = (OrderId)op;
         }
         CuAssertIntEquals(tc, liveCount, (int)book->orders.size);
         if(op % 50 == 0){
@@ -1229,9 +1341,6 @@ TestBookRandomOrderFlow(CuTest *tc){
         }
     }
     checkBook(tc, book);
-    while(liveCount > 0){
-        free(live[--liveCount]);
-    }
     freeBook(book);
 }
 
@@ -1274,6 +1383,9 @@ CuSuite* HFTLobGetSuite(void){
     SUITE_ADD_TEST(suite, TestBookRemove);
     SUITE_ADD_TEST(suite, TestBookReplace);
     SUITE_ADD_TEST(suite, TestBookRotationsKeepParentLinks);
+    SUITE_ADD_TEST(suite, TestBookExecuteBuy);
+    SUITE_ADD_TEST(suite, TestBookExecuteSell);
+    SUITE_ADD_TEST(suite, TestBookExecuteRejectsInvalidInput);
     SUITE_ADD_TEST(suite, TestBookRandomOrderFlow);
 
     return suite;

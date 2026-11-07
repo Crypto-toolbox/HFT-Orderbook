@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Order ids, as assigned by the exchange or the caller. */
+typedef uint64_t OrderId;
+
 /* Values for Order.buyOrSell */
 #define HFTLOB_SELL 0u
 #define HFTLOB_BUY  1u
@@ -12,7 +15,7 @@
  */
 
 typedef struct Order{
-    char *tid;
+    OrderId id;
     unsigned buyOrSell;
     double shares;
     double limit;
@@ -63,6 +66,15 @@ typedef struct HashMap{
 } HashMap;
 
 /**
+ * Called once per fill by executeInBook(), before the resting order is
+ * updated: resting->shares is still its size before this fill. If shares
+ * equals resting->shares, the resting order is removed and freed once the
+ * callback returns. The callback must not modify the book.
+ */
+typedef void (*FillCallback)(const Order *resting, double shares,
+                             double price, void *ctx);
+
+/**
  * A limit order book: one AVL tree of Limits per side, plus hash maps
  * for O(1) lookups of orders by id and limits by price.
  *
@@ -74,7 +86,7 @@ typedef struct Book{
     Limit *sellTree;
     Limit *highestBuy;      /* best bid, or NULL */
     Limit *lowestSell;      /* best ask, or NULL */
-    HashMap orders;         /* tid -> Order* */
+    HashMap orders;         /* id -> Order* */
     HashMap buyLimits;      /* price -> Limit* */
     HashMap sellLimits;     /* price -> Limit* */
 } Book;
@@ -137,17 +149,21 @@ void
 freeBook(Book *book);
 
 Order*
-addOrderToBook(Book *book, const char *tid, unsigned buyOrSell,
+addOrderToBook(Book *book, OrderId id, unsigned buyOrSell,
                double shares, double price);
 
 int
-removeOrderFromBook(Book *book, const char *tid);
+removeOrderFromBook(Book *book, OrderId id);
 
 int
-replaceOrderInBook(Book *book, const char *tid, double shares, double price);
+replaceOrderInBook(Book *book, OrderId id, double shares, double price);
+
+double
+executeInBook(Book *book, unsigned aggressorSide, double shares,
+              double limitPrice, FillCallback onFill, void *ctx);
 
 Order*
-getOrderFromBook(const Book *book, const char *tid);
+getOrderFromBook(const Book *book, OrderId id);
 
 Limit*
 getLimitFromBook(const Book *book, unsigned buyOrSell, double price);

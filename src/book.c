@@ -5,13 +5,13 @@
  *   Add     - O(log M) for the first order at a price, O(1) otherwise
  *   Remove  - O(1), plus O(log M) when it empties a price level
  *   Replace - O(1) for a size change, remove + add for a price change
+ *   Execute - O(1) per resting order filled, plus O(log M) per emptied level
  *   Best bid/ask, order and limit lookups - O(1)
  *
  * where M is the number of price levels on that side.
  */
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
 #include "hftlob.h"
 
 static double
@@ -82,12 +82,6 @@ dropLimitIfEmpty(Book *book, unsigned buyOrSell, Limit *limit){
     free(limit);
 }
 
-static void
-freeOrder(Order *order){
-    free(order->tid);
-    free(order);
-}
-
 Book*
 createBook(void){
     /**
@@ -124,7 +118,7 @@ freeBook(Book *book){
     for(i = 0; i < book->orders.capacity; ++i){
         MapEntry *entry;
         for(entry = book->orders.buckets[i]; entry != NULL; entry = entry->next){
-            freeOrder(entry->value);
+            free(entry->value);
         }
     }
     limitMaps[0] = &book->buyLimits;
@@ -146,26 +140,24 @@ freeBook(Book *book){
 }
 
 Order*
-addOrderToBook(Book *book, const char *tid, unsigned buyOrSell,
+addOrderToBook(Book *book, OrderId id, unsigned buyOrSell,
                double shares, double price){
     /**
      * Add a new order at the back of its price level's queue.
      *
-     * The book copies tid and owns the returned Order; it stays valid until
-     * the order is removed. Returns NULL if tid is NULL or already in the
-     * book, buyOrSell is not HFTLOB_BUY/HFTLOB_SELL, shares is not positive,
-     * price is NaN, or memory runs out.
+     * The book owns the returned Order; it stays valid until the order is
+     * removed or fully executed. Returns NULL if id is already in the book,
+     * buyOrSell is not HFTLOB_BUY/HFTLOB_SELL, shares is not positive, price
+     * is NaN, or memory runs out.
      */
-    size_t tidLen;
     Order *order;
     Limit *limit;
 
-    if(tid == NULL || (buyOrSell != HFTLOB_BUY && buyOrSell != HFTLOB_SELL)
+    if((buyOrSell != HFTLOB_BUY && buyOrSell != HFTLOB_SELL)
             || !(shares > 0) || isnan(price)){
         return NULL;
     }
-    tidLen = strlen(tid);
-    if(mapGet(&book->orders, tid, tidLen) != NULL){
+    if(mapGet(&book->orders, &id, sizeof(id)) != NULL){
         return NULL;
     }
 
@@ -174,22 +166,17 @@ addOrderToBook(Book *book, const char *tid, unsigned buyOrSell,
         return NULL;
     }
     initOrder(order);
-    order->tid = malloc(tidLen + 1);
-    if(order->tid == NULL){
-        free(order);
-        return NULL;
-    }
-    memcpy(order->tid, tid, tidLen + 1);
+    order->id = id;
     order->buyOrSell = buyOrSell;
     order->shares = shares;
     order->limit = normalisePrice(price);
 
     limit = getOrCreateLimit(book, buyOrSell, order->limit);
-    if(limit == NULL || !mapPut(&book->orders, tid, tidLen, order)){
+    if(limit == NULL || !mapPut(&book->orders, &id, sizeof(id), order)){
         if(limit != NULL){
             dropLimitIfEmpty(book, buyOrSell, limit);
         }
-        freeOrder(order);
+        free(order);
         return NULL;
     }
     pushOrder(limit, order);
@@ -197,29 +184,26 @@ addOrderToBook(Book *book, const char *tid, unsigned buyOrSell,
 }
 
 int
-removeOrderFromBook(Book *book, const char *tid){
+removeOrderFromBook(Book *book, OrderId id){
     /**
      * Cancel an order and free it. Empty price levels are removed.
      * Returns 1 on success, 0 if the order is not in the book.
      */
     Order *order;
     Limit *limit;
-    if(tid == NULL){
-        return 0;
-    }
-    order = mapRemove(&book->orders, tid, strlen(tid));
+    order = mapRemove(&book->orders, &id, sizeof(id));
     if(order == NULL){
         return 0;
     }
     limit = order->parentLimit;
     removeOrder(order);
     dropLimitIfEmpty(book, order->buyOrSell, limit);
-    freeOrder(order);
+    free(order);
     return 1;
 }
 
 int
-replaceOrderInBook(Book *book, const char *tid, double shares, double price){
+replaceOrderInBook(Book *book, OrderId id, double shares, double price){
     /**
      * Change an order's size and/or price.
      *
@@ -232,7 +216,7 @@ replaceOrderInBook(Book *book, const char *tid, double shares, double price){
      * Returns 1 on success, 0 if the order is not in the book, -1 if the
      * price is NaN or memory runs out (the order is then left unchanged).
      */
-    Order *order = getOrderFromBook(book, tid);
+    Order *order = getOrderFromBook(book, id);
     Limit *oldLimit;
     Limit *newLimit;
 
@@ -240,7 +224,7 @@ replaceOrderInBook(Book *book, const char *tid, double shares, double price){
         return 0;
     }
     if(!(shares > 0)){
-        return removeOrderFromBook(book, tid);
+        return removeOrderFromBook(book, id);
     }
     if(isnan(price)){
         return -1;
@@ -268,12 +252,68 @@ replaceOrderInBook(Book *book, const char *tid, double shares, double price){
     return 1;
 }
 
-Order*
-getOrderFromBook(const Book *book, const char *tid){
-    if(tid == NULL){
-        return NULL;
+double
+executeInBook(Book *book, unsigned aggressorSide, double shares,
+              double limitPrice, FillCallback onFill, void *ctx){
+    /**
+     * Execute an incoming (aggressive) order against the opposite side of
+     * the book, in price-time priority: best price first, and the oldest
+     * order first within a price level.
+     *
+     * A buy fills against asks priced at or below limitPrice; a sell fills
+     * against bids priced at or above it. Pass INFINITY (buy) or -INFINITY
+     * (sell) for a market order. Matching stops when the order is filled or
+     * no eligible liquidity is left.
+     *
+     * Resting orders are reduced or, when fully filled, removed and freed;
+     * emptied price levels are removed. onFill (may be NULL) is called for
+     * every fill, at the resting order's price.
+     *
+     * The unfilled remainder is NOT added to the book (immediate-or-cancel);
+     * add it with addOrderToBook() to rest a limit order.
+     *
+     * Returns the quantity filled, or 0 for invalid arguments.
+     */
+    double remaining = shares;
+
+    if((aggressorSide != HFTLOB_BUY && aggressorSide != HFTLOB_SELL)
+            || !(shares > 0) || isnan(limitPrice)){
+        return 0;
     }
-    return mapGet(&book->orders, tid, strlen(tid));
+
+    while(remaining > 0){
+        Limit *best = aggressorSide == HFTLOB_BUY ? book->lowestSell : book->highestBuy;
+        Order *resting;
+        double fill;
+
+        if(best == NULL
+                || (aggressorSide == HFTLOB_BUY && best->limitPrice > limitPrice)
+                || (aggressorSide == HFTLOB_SELL && best->limitPrice < limitPrice)){
+            break;
+        }
+
+        resting = best->tailOrder;  /* oldest order at this level */
+        fill = resting->shares < remaining ? resting->shares : remaining;
+        if(onFill != NULL){
+            onFill(resting, fill, best->limitPrice, ctx);
+        }
+        remaining -= fill;
+
+        if(fill == resting->shares){
+            removeOrderFromBook(book, resting->id);
+        }
+        else{
+            resting->shares -= fill;
+            best->size -= fill;
+            best->totalVolume -= fill * best->limitPrice;
+        }
+    }
+    return shares - remaining;
+}
+
+Order*
+getOrderFromBook(const Book *book, OrderId id){
+    return mapGet(&book->orders, &id, sizeof(id));
 }
 
 Limit*
