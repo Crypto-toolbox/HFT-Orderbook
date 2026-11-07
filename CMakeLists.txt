@@ -20,7 +20,9 @@ add_library(hftlob STATIC
         src/limits.c
         src/orders.c
         src/bst.c
-        src/utils.c)
+        src/utils.c
+        src/hashmap.c
+        src/book.c)
 target_include_directories(hftlob PUBLIC src)
 target_compile_options(hftlob PRIVATE -Wall -Wextra)
 target_link_libraries(hftlob PUBLIC m)
@@ -34,3 +36,8 @@ target_link_libraries(HFT_Orderbook PRIVATE hftlob)
 
 enable_testing()
 add_test(NAME cutest COMMAND HFT_Orderbook --test)
+
+# Example program: `./hftlob_example`
+add_executable(hftlob_example examples/basic.c)
+target_link_libraries(hftlob_example PRIVATE hftlob)
+add_test(NAME example COMMAND hftlob_example)

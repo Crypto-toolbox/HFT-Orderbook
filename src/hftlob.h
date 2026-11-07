@@ -1,5 +1,12 @@
 #ifndef HFTLOB_H_
 #define HFTLOB_H_
+
+#include <stddef.h>
+#include <stdint.h>
+
+/* Values for Order.buyOrSell */
+#define HFTLOB_SELL 0u
+#define HFTLOB_BUY  1u
 /**
  * CUSTOM STRUCTS
  */
@@ -22,6 +29,7 @@ typedef struct Limit{
     double size;
     double totalVolume;
     int orderCount;
+    int height;             /* cached AVL height; a leaf is 0 */
     struct Limit *parent;
     struct Limit *leftChild;
     struct Limit *rightChild;
@@ -39,6 +47,37 @@ typedef struct Queue{
     QueueItem *head;
     QueueItem *tail;
 } Queue;
+
+typedef struct MapEntry{
+    void *key;
+    size_t keyLen;
+    uint64_t hash;
+    void *value;
+    struct MapEntry *next;
+} MapEntry;
+
+typedef struct HashMap{
+    MapEntry **buckets;
+    size_t capacity;
+    size_t size;
+} HashMap;
+
+/**
+ * A limit order book: one AVL tree of Limits per side, plus hash maps
+ * for O(1) lookups of orders by id and limits by price.
+ *
+ * The book owns every Order and Limit in it; use the *Book functions
+ * below instead of manipulating the trees directly.
+ */
+typedef struct Book{
+    Limit *buyTree;         /* root sentinels; the tree hangs off rightChild */
+    Limit *sellTree;
+    Limit *highestBuy;      /* best bid, or NULL */
+    Limit *lowestSell;      /* best ask, or NULL */
+    HashMap orders;         /* tid -> Order* */
+    HashMap buyLimits;      /* price -> Limit* */
+    HashMap sellLimits;     /* price -> Limit* */
+} Book;
 
 /**
  * INIT FUNCTIONS
@@ -69,6 +108,57 @@ int
 queueIsEmpty(Queue *q);
 
 /**
+ * HASH MAP FUNCTIONS
+ */
+
+int
+initMap(HashMap *map, size_t capacity);
+
+void
+freeMap(HashMap *map);
+
+void*
+mapGet(const HashMap *map, const void *key, size_t keyLen);
+
+int
+mapPut(HashMap *map, const void *key, size_t keyLen, void *value);
+
+void*
+mapRemove(HashMap *map, const void *key, size_t keyLen);
+
+/**
+ * BOOK FUNCTIONS
+ */
+
+Book*
+createBook(void);
+
+void
+freeBook(Book *book);
+
+Order*
+addOrderToBook(Book *book, const char *tid, unsigned buyOrSell,
+               double shares, double price);
+
+int
+removeOrderFromBook(Book *book, const char *tid);
+
+int
+replaceOrderInBook(Book *book, const char *tid, double shares, double price);
+
+Order*
+getOrderFromBook(const Book *book, const char *tid);
+
+Limit*
+getLimitFromBook(const Book *book, unsigned buyOrSell, double price);
+
+Limit*
+getBestBid(const Book *book);
+
+Limit*
+getBestAsk(const Book *book);
+
+/**
  * ORDER FUNCTIONS
  */
 
@@ -97,6 +187,9 @@ replaceLimitInParent(Limit *limit, Limit *newLimit);
 int
 removeLimit(Limit *limit);
 
+Limit*
+detachLimit(Limit *limit);
+
 /**
  * BINARY SEARCH TREE BALANCING FUNCTIONS
  */
@@ -115,6 +208,9 @@ rotateRightRight(Limit *limit);
 
 void
 rotateRightLeft(Limit *limit);
+
+void
+rebalanceUpwards(Limit *limit);
 
 
 /**
@@ -144,6 +240,12 @@ getHeight(Limit *limit);
 
 int
 getBalanceFactor(Limit *limit);
+
+void
+updateHeight(Limit *limit);
+
+void
+updateHeightsUpwards(Limit *limit);
 
 void
 copyLimit(Limit *ptr_src, Limit *ptr_tar);

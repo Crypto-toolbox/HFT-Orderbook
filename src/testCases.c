@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "CuTest.h"
 #include "hftlob.h"
 
@@ -997,6 +998,243 @@ TestBalanceBranch(CuTest *tc){
 }
 
 
+
+/**
+ * Book API tests.
+ */
+
+void
+TestBookAddAndBestPrices(CuTest *tc){
+    Book *book = createBook();
+    CuAssertPtrNotNull(tc, book);
+    CuAssertPtrEquals(tc, NULL, getBestBid(book));
+    CuAssertPtrEquals(tc, NULL, getBestAsk(book));
+
+    Order *a = addOrderToBook(book, "a", HFTLOB_BUY, 5, 100.0);
+    Order *b = addOrderToBook(book, "b", HFTLOB_BUY, 3, 101.0);
+    Order *c = addOrderToBook(book, "c", HFTLOB_BUY, 2, 101.0);
+    Order *d = addOrderToBook(book, "d", HFTLOB_SELL, 4, 103.0);
+    Order *e = addOrderToBook(book, "e", HFTLOB_SELL, 1, 102.0);
+    CuAssertPtrNotNull(tc, a);
+    CuAssertPtrNotNull(tc, b);
+    CuAssertPtrNotNull(tc, c);
+    CuAssertPtrNotNull(tc, d);
+    CuAssertPtrNotNull(tc, e);
+
+    CuAssertDblEquals(tc, 101.0, getBestBid(book)->limitPrice, 0.0);
+    CuAssertDblEquals(tc, 102.0, getBestAsk(book)->limitPrice, 0.0);
+
+    /* Volume at limit, and FIFO: b is older than c, so b sits at the tail. */
+    Limit *l101 = getLimitFromBook(book, HFTLOB_BUY, 101.0);
+    CuAssertIntEquals(tc, 2, l101->orderCount);
+    CuAssertDblEquals(tc, 5.0, l101->size, 0.0);
+    CuAssertDblEquals(tc, 505.0, l101->totalVolume, 0.0);
+    CuAssertPtrEquals(tc, b, l101->tailOrder);
+    CuAssertPtrEquals(tc, c, l101->headOrder);
+
+    /* Lookups, and the book owns a copy of the id. */
+    char tid[] = "z";
+    Order *z = addOrderToBook(book, tid, HFTLOB_SELL, 1, 110.0);
+    tid[0] = 'y';
+    CuAssertPtrEquals(tc, z, getOrderFromBook(book, "z"));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, "y"));
+    CuAssertStrEquals(tc, "z", z->tid);
+    CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_SELL, 101.0));
+
+    freeBook(book);
+}
+
+void
+TestBookRejectsInvalidOrders(CuTest *tc){
+    Book *book = createBook();
+    CuAssertPtrNotNull(tc, addOrderToBook(book, "a", HFTLOB_BUY, 1, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "a", HFTLOB_SELL, 1, 105.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, NULL, HFTLOB_BUY, 1, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "b", 7, 1, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "b", HFTLOB_BUY, 0, 100.0));
+    CuAssertPtrEquals(tc, NULL, addOrderToBook(book, "b", HFTLOB_BUY, 1, NAN));
+    CuAssertIntEquals(tc, 1, (int)book->orders.size);
+    CuAssertIntEquals(tc, 0, removeOrderFromBook(book, "nope"));
+    CuAssertIntEquals(tc, 0, replaceOrderInBook(book, "nope", 1, 1));
+    CuAssertIntEquals(tc, -1, replaceOrderInBook(book, "a", 1, NAN));
+    freeBook(book);
+}
+
+void
+TestBookRemove(CuTest *tc){
+    Book *book = createBook();
+    addOrderToBook(book, "a", HFTLOB_BUY, 5, 100.0);
+    addOrderToBook(book, "b", HFTLOB_BUY, 3, 101.0);
+    addOrderToBook(book, "c", HFTLOB_BUY, 2, 101.0);
+
+    /* Removing one of two orders keeps the level. */
+    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, "b"));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, "b"));
+    CuAssertDblEquals(tc, 101.0, getBestBid(book)->limitPrice, 0.0);
+    CuAssertDblEquals(tc, 2.0, getBestBid(book)->size, 0.0);
+
+    /* Emptying the best level falls back to the next best price. */
+    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, "c"));
+    CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_BUY, 101.0));
+    CuAssertDblEquals(tc, 100.0, getBestBid(book)->limitPrice, 0.0);
+
+    CuAssertIntEquals(tc, 1, removeOrderFromBook(book, "a"));
+    CuAssertPtrEquals(tc, NULL, getBestBid(book));
+    CuAssertPtrEquals(tc, NULL, book->buyTree->rightChild);
+    CuAssertIntEquals(tc, 0, (int)book->orders.size);
+    freeBook(book);
+}
+
+void
+TestBookReplace(CuTest *tc){
+    Book *book = createBook();
+    Order *a = addOrderToBook(book, "a", HFTLOB_SELL, 5, 100.0);
+    Order *b = addOrderToBook(book, "b", HFTLOB_SELL, 3, 100.0);
+
+    /* Size change: in place, queue position kept. */
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "a", 2, 100.0));
+    Limit *l100 = getLimitFromBook(book, HFTLOB_SELL, 100.0);
+    CuAssertDblEquals(tc, 2.0, a->shares, 0.0);
+    CuAssertDblEquals(tc, 5.0, l100->size, 0.0);
+    CuAssertDblEquals(tc, 500.0, l100->totalVolume, 0.0);
+    CuAssertPtrEquals(tc, a, l100->tailOrder);
+
+    /* Price change: same Order moves to the back of its new level. */
+    addOrderToBook(book, "c", HFTLOB_SELL, 1, 99.0);
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "a", 2, 99.0));
+    CuAssertPtrEquals(tc, a, getOrderFromBook(book, "a"));
+    CuAssertDblEquals(tc, 99.0, a->limit, 0.0);
+    Limit *l99 = getLimitFromBook(book, HFTLOB_SELL, 99.0);
+    CuAssertPtrEquals(tc, l99, a->parentLimit);
+    CuAssertPtrEquals(tc, a, l99->headOrder);
+    CuAssertDblEquals(tc, 3.0, l99->size, 0.0);
+    CuAssertDblEquals(tc, 3.0, l100->size, 0.0);
+    CuAssertPtrEquals(tc, b, l100->tailOrder);
+
+    /* Moving the last order off a level removes the level. */
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "b", 3, 98.0));
+    CuAssertPtrEquals(tc, NULL, getLimitFromBook(book, HFTLOB_SELL, 100.0));
+    CuAssertDblEquals(tc, 98.0, getBestAsk(book)->limitPrice, 0.0);
+
+    /* Zero size cancels. */
+    CuAssertIntEquals(tc, 1, replaceOrderInBook(book, "b", 0, 98.0));
+    CuAssertPtrEquals(tc, NULL, getOrderFromBook(book, "b"));
+    CuAssertDblEquals(tc, 99.0, getBestAsk(book)->limitPrice, 0.0);
+    freeBook(book);
+}
+
+void
+TestBookRotationsKeepParentLinks(CuTest *tc){
+    /* Ascending prices force repeated rotations involving subtrees. */
+    Book *book = createBook();
+    char tid[16];
+    int i;
+    for(i = 0; i < 64; ++i){
+        snprintf(tid, sizeof(tid), "%d", i);
+        addOrderToBook(book, tid, HFTLOB_BUY, 1, (double)i);
+    }
+    Limit *top = book->buyTree->rightChild;
+    CuAssertIntEquals(tc, 6, top->height);
+    CuAssertIntEquals(tc, 6, getHeight(top));
+    CuAssertDblEquals(tc, 63.0, getBestBid(book)->limitPrice, 0.0);
+    freeBook(book);
+}
+
+/* --- Randomised invariant test ------------------------------------- */
+
+static int
+checkSubtree(CuTest *tc, Limit *limit, Limit *parent, double lo, double hi, int *count){
+    int left, right;
+    double size = 0;
+    int orders = 0;
+    Order *order;
+    if(limit == NULL){
+        return -1;
+    }
+    CuAssertPtrEquals(tc, parent, limit->parent);
+    CuAssertTrue(tc, limit->limitPrice > lo && limit->limitPrice < hi);
+    left = checkSubtree(tc, limit->leftChild, limit, lo, limit->limitPrice, count);
+    right = checkSubtree(tc, limit->rightChild, limit, limit->limitPrice, hi, count);
+    CuAssertTrue(tc, abs(right - left) <= 1);
+    CuAssertIntEquals(tc, (left > right ? left : right) + 1, limit->height);
+
+    for(order = limit->headOrder; order != NULL; order = order->nextOrder){
+        CuAssertPtrEquals(tc, limit, order->parentLimit);
+        if(order->nextOrder != NULL){
+            CuAssertPtrEquals(tc, order, order->nextOrder->prevOrder);
+        }
+        else{
+            CuAssertPtrEquals(tc, order, limit->tailOrder);
+        }
+        size += order->shares;
+        orders++;
+    }
+    CuAssertTrue(tc, orders > 0);
+    CuAssertIntEquals(tc, orders, limit->orderCount);
+    CuAssertDblEquals(tc, size, limit->size, 1e-9);
+    *count += 1;
+    return limit->height;
+}
+
+static void
+checkBook(CuTest *tc, Book *book){
+    int bidLevels = 0, askLevels = 0;
+    Limit *bids = book->buyTree->rightChild;
+    Limit *asks = book->sellTree->rightChild;
+    checkSubtree(tc, bids, book->buyTree, -INFINITY, INFINITY, &bidLevels);
+    checkSubtree(tc, asks, book->sellTree, -INFINITY, INFINITY, &askLevels);
+    CuAssertIntEquals(tc, bidLevels, (int)book->buyLimits.size);
+    CuAssertIntEquals(tc, askLevels, (int)book->sellLimits.size);
+    CuAssertPtrEquals(tc, bids ? getMaximumLimit(bids) : NULL, getBestBid(book));
+    CuAssertPtrEquals(tc, asks ? getMinimumLimit(asks) : NULL, getBestAsk(book));
+}
+
+void
+TestBookRandomOrderFlow(CuTest *tc){
+    enum { OPS = 20000, MAX_LIVE = 4096 };
+    Book *book = createBook();
+    char *live[MAX_LIVE];
+    int liveCount = 0;
+    int op;
+    char tid[16];
+    srand(42);
+
+    for(op = 0; op < OPS; ++op){
+        int roll = rand() % 100;
+        if(liveCount > 0 && roll < 15){
+            /* replace: new size and/or price */
+            Order *order = getOrderFromBook(book, live[rand() % liveCount]);
+            double price = (rand() % 60) + (order->buyOrSell == HFTLOB_BUY ? 1 : 61);
+            CuAssertIntEquals(tc, 1, replaceOrderInBook(book, order->tid, 1 + rand() % 10, price));
+        }
+        else if(liveCount > 0 && (roll < 55 || liveCount == MAX_LIVE)){
+            /* cancel */
+            int idx = rand() % liveCount;
+            CuAssertIntEquals(tc, 1, removeOrderFromBook(book, live[idx]));
+            free(live[idx]);
+            live[idx] = live[--liveCount];
+        }
+        else{
+            /* add */
+            unsigned side = rand() % 2 ? HFTLOB_BUY : HFTLOB_SELL;
+            double price = (rand() % 60) + (side == HFTLOB_BUY ? 1 : 61);
+            snprintf(tid, sizeof(tid), "o%d", op);
+            CuAssertPtrNotNull(tc, addOrderToBook(book, tid, side, 1 + rand() % 10, price));
+            live[liveCount] = malloc(strlen(tid) + 1);
+            strcpy(live[liveCount++], tid);
+        }
+        CuAssertIntEquals(tc, liveCount, (int)book->orders.size);
+        if(op % 50 == 0){
+            checkBook(tc, book);
+        }
+    }
+    checkBook(tc, book);
+    while(liveCount > 0){
+        free(live[--liveCount]);
+    }
+    freeBook(book);
+}
+
 /**
  * Create Test Suite and test runner.
  */
@@ -1031,6 +1269,12 @@ CuSuite* HFTLobGetSuite(void){
     SUITE_ADD_TEST(suite, TestQueueIsFifo);
     SUITE_ADD_TEST(suite, TestInitLimitClearsTail);
     SUITE_ADD_TEST(suite, TestRemoveLimitWithDeepSuccessor);
+    SUITE_ADD_TEST(suite, TestBookAddAndBestPrices);
+    SUITE_ADD_TEST(suite, TestBookRejectsInvalidOrders);
+    SUITE_ADD_TEST(suite, TestBookRemove);
+    SUITE_ADD_TEST(suite, TestBookReplace);
+    SUITE_ADD_TEST(suite, TestBookRotationsKeepParentLinks);
+    SUITE_ADD_TEST(suite, TestBookRandomOrderFlow);
 
     return suite;
 }

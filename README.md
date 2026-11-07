@@ -3,18 +3,38 @@ Limit Order Book for high-frequency trading (HFT), as described by WK Selph, imp
 
 Two flavours live side by side:
 
-- **C** (`src/`): the core data structures (limit tree, order lists).
+- **C** (`src/`): a `Book` API on top of AVL limit trees, order queues and hash maps.
 - **Python** (`lob.py`): a complete, pure-Python `LimitOrderBook`.
 
 ## Quick start
 
-**C**: build with CMake and run the CuTest suite:
+**C**: build with CMake, run the tests and the example:
 
 ```bash
 cmake -S . -B build          # add -DHFTLOB_SANITIZE=ON for ASan/UBSan
 cmake --build build
 ctest --test-dir build --output-on-failure   # or: ./build/HFT_Orderbook --test
+./build/hftlob_example
 ```
+
+Using it looks like this (see [`examples/basic.c`](examples/basic.c)):
+
+```c
+#include "hftlob.h"
+
+Book *book = createBook();
+addOrderToBook(book, "a", HFTLOB_BUY, 5, 100.0);    /* add */
+addOrderToBook(book, "b", HFTLOB_SELL, 3, 101.0);
+replaceOrderInBook(book, "a", 2, 100.0);            /* new size: keeps queue spot */
+replaceOrderInBook(book, "a", 2, 99.0);             /* new price: moved, loses queue spot */
+removeOrderFromBook(book, "b");                     /* cancel */
+
+getBestBid(book)->limitPrice;                       /* 99.0 */
+getLimitFromBook(book, HFTLOB_BUY, 99.0)->size;     /* volume at a price: 2.0 */
+freeBook(book);                                     /* frees every order and level */
+```
+
+The book owns its orders and copies their ids. Order ids are strings.
 
 **Python**: no dependencies, Python 3.9+:
 

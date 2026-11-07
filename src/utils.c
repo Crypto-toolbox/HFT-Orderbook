@@ -24,7 +24,7 @@ initOrder(Order *order){
     order->prevOrder = NULL;
     order->parentLimit = NULL;
     order->exchangeId = 0;
-};
+}
 
 void
 initLimit(Limit *limit){
@@ -32,25 +32,26 @@ initLimit(Limit *limit){
     limit->size = 0;
     limit->totalVolume = 0;
     limit->orderCount = 0;
+    limit->height = 0;
     limit->parent = NULL;
     limit->leftChild = NULL;
     limit->rightChild = NULL;
     limit->headOrder = NULL;
     limit->tailOrder = NULL;
-};
+}
 
 void
 initQueueItem(QueueItem *item){
     item->limit = NULL;
     item->previous = NULL;
-};
+}
 
 void
 initQueue(Queue *q){
     q->head = NULL;
     q->tail = NULL;
     q->size = 0;
-};
+}
 
 int
 limitExists(Limit *root, Limit *limit){
@@ -156,6 +157,9 @@ int
 getHeight(Limit *limit){
     /**
      * Calculate the height of the limits under the passed limit non-recursively.
+     *
+     * This walks the whole subtree; the tree functions use the cached
+     * Limit.height instead. Useful to verify the cache.
      */
 
      if(limit == NULL){
@@ -195,17 +199,10 @@ getBalanceFactor(Limit *limit){
     /**
      * Calculate the balance factor of the passed limit, by
      * subtracting the left children's height from the right children's
-     * height.
+     * height. Uses the cached heights, so this is O(1).
      */
-    int leftHeight = -1;
-    int rightHeight = -1;
-    if(limit->rightChild!=NULL){
-        rightHeight = getHeight(limit->rightChild);
-    }
-
-    if(limit->leftChild!=NULL){
-        leftHeight = getHeight(limit->leftChild);
-    }
+    int leftHeight = limit->leftChild != NULL ? limit->leftChild->height : -1;
+    int rightHeight = limit->rightChild != NULL ? limit->rightChild->height : -1;
     return rightHeight - leftHeight;
 }
 
@@ -227,5 +224,28 @@ copyLimit(Limit *ptr_src, Limit *ptr_tar){
         if(ptr_order != NULL){
             ptr_order = ptr_order->nextOrder;
         }
+    }
+}
+
+void
+updateHeight(Limit *limit){
+    /**
+     * Recompute the cached height of the limit from its children's cached
+     * heights. A leaf has height 0.
+     */
+    int leftHeight = limit->leftChild != NULL ? limit->leftChild->height : -1;
+    int rightHeight = limit->rightChild != NULL ? limit->rightChild->height : -1;
+    limit->height = (leftHeight > rightHeight ? leftHeight : rightHeight) + 1;
+}
+
+void
+updateHeightsUpwards(Limit *limit){
+    /**
+     * Refresh cached heights from the given limit up to (excluding) the
+     * tree's root sentinel.
+     */
+    while(limit != NULL && !limitIsRoot(limit)){
+        updateHeight(limit);
+        limit = limit->parent;
     }
 }

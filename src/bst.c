@@ -40,6 +40,36 @@ balanceBranch(Limit *limit) {
     else{/*Everything is fine, do nothing*/}
 }
 
+static void
+rotateLeft(Limit *limit){
+    /* Our right child takes our place; we become its left child. */
+    Limit *child = limit->rightChild;
+    replaceLimitInParent(limit, child);
+    limit->rightChild = child->leftChild;
+    if(limit->rightChild != NULL){
+        limit->rightChild->parent = limit;
+    }
+    child->leftChild = limit;
+    limit->parent = child;
+    updateHeight(limit);
+    updateHeight(child);
+}
+
+static void
+rotateRight(Limit *limit){
+    /* Our left child takes our place; we become its right child. */
+    Limit *child = limit->leftChild;
+    replaceLimitInParent(limit, child);
+    limit->leftChild = child->rightChild;
+    if(limit->leftChild != NULL){
+        limit->leftChild->parent = limit;
+    }
+    child->rightChild = limit;
+    limit->parent = child;
+    updateHeight(limit);
+    updateHeight(child);
+}
+
 void
 rotateLeftLeft(Limit *limit) {
     /**
@@ -47,19 +77,7 @@ rotateLeftLeft(Limit *limit) {
      * Reference:
      *     https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
      */
-    Limit *child = limit->leftChild;
-    if(limitIsRoot(limit->parent)==1 || limit->limitPrice > limit->parent->limitPrice){
-        limit->parent->rightChild = child;
-    }
-    else{
-        limit->parent->leftChild = child;
-    }
-    child->parent = limit->parent;
-    limit->parent = child;
-    Limit* tmp_ptr = child->rightChild;
-    child->rightChild = limit;
-    limit->leftChild = tmp_ptr;
-    return;
+    rotateRight(limit);
 }
 
 void
@@ -69,23 +87,8 @@ rotateLeftRight(Limit *limit) {
      * Reference:
      *     https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
      */
-    Limit *child = limit->leftChild;
-    Limit *grandChild = limit->leftChild->rightChild;
-    child->parent = grandChild;
-    grandChild->parent = limit;
-
-    Limit* tmp_b_ptr = child->leftChild;
-    Limit* tmp_c_ptr = grandChild->leftChild;
-    Limit* tmp_d_ptr = grandChild->rightChild;
-
-    child->rightChild = grandChild->leftChild;
-    limit->leftChild = grandChild;
-    grandChild->leftChild = child;
-    grandChild->rightChild = tmp_d_ptr;
-    child->leftChild = tmp_b_ptr;
-    child->rightChild = tmp_c_ptr;
-    rotateLeftLeft(limit);
-    return;
+    rotateLeft(limit->leftChild);
+    rotateRight(limit);
 }
 
 void
@@ -95,19 +98,7 @@ rotateRightRight(Limit *limit){
      * Reference:
      *     https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
      */
-    Limit *child = limit->rightChild;
-    if(limitIsRoot(limit->parent)==1 || limit->limitPrice > limit->parent->limitPrice){
-        limit->parent->rightChild = child;
-    }
-    else{
-        limit->parent->leftChild = child;
-    }
-    child->parent = limit->parent;
-    limit->parent = child;
-    Limit* tmp_ptr = child->leftChild;
-    child->leftChild = limit;
-    limit->rightChild = tmp_ptr;
-    return;
+    rotateLeft(limit);
 }
 
 void
@@ -118,19 +109,20 @@ rotateRightLeft(Limit *limit){
      * Reference:
      *     https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
      */
-    Limit *child = limit->rightChild;
-    Limit *grandChild = limit->rightChild->leftChild;
-    child->parent = grandChild;
-    grandChild->parent = limit;
-    Limit* tmp_b_ptr = child->rightChild;
-    Limit* tmp_c_ptr = grandChild->rightChild;
-    Limit* tmp_d_ptr = grandChild->leftChild;
-    limit->rightChild = grandChild;
-    grandChild->rightChild = child;
-    grandChild->leftChild = tmp_d_ptr;
-    child->leftChild = tmp_c_ptr;
-    child->rightChild = tmp_b_ptr;
+    rotateRight(limit->rightChild);
+    rotateLeft(limit);
+}
 
-    rotateRightRight(limit);
-    return;
+void
+rebalanceUpwards(Limit *limit){
+    /**
+     * Refresh cached heights and restore the AVL property from the given
+     * limit up to the tree's root sentinel. Call it on the lowest limit
+     * whose subtree changed after an insert or removal.
+     */
+    while(limit != NULL && !limitIsRoot(limit)){
+        updateHeight(limit);
+        balanceBranch(limit);
+        limit = limit->parent;
+    }
 }
