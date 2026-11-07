@@ -40,7 +40,7 @@ class OrderTests(TestCase):
         self.assertEqual(lob.best_bid.orders.head.size, 4)
         self.assertEqual(lob.best_bid.volume, 400)
 
-        updated_ask_order = Order(uid=2, is_bid=True, size=4, price=200, timestamp=ask_order.timestamp)
+        updated_ask_order = Order(uid=2, is_bid=False, size=4, price=200, timestamp=ask_order.timestamp)
         lob.process(updated_ask_order)
         self.assertEqual(lob.best_ask.orders.head.size, 4)
         self.assertEqual(lob.best_ask.volume, 800)
@@ -171,6 +171,33 @@ class RegressionTests(TestCase):
         self.assertEqual(_in_order(lob.asks.right_child), [50, 120, 150, 200])
 
 
+    def test_price_change_moves_order_to_new_level(self):
+        lob = LimitOrderBook()
+        lob.process(Order(uid=1, is_bid=True, size=5, price=100))
+        lob.process(Order(uid=2, is_bid=True, size=3, price=105))
+        lob.process(Order(uid=3, is_bid=True, size=4, price=105))
+
+        # Move uid 1 up to 105: it joins the back of the queue there.
+        lob.process(Order(uid=1, is_bid=True, size=5, price=105))
+        self.assertNotIn(100, lob._price_levels)
+        self.assertEqual(lob.best_bid.price, 105)
+        self.assertEqual(lob.best_bid.size, 12)
+        self.assertIs(lob.best_bid.orders.tail, lob._orders[1])
+
+        # Move uid 2 down to 99: best bid stays, sizes follow.
+        lob.process(Order(uid=2, is_bid=True, size=3, price=99))
+        self.assertEqual(lob.best_bid.price, 105)
+        self.assertEqual(lob.best_bid.size, 9)
+        self.assertEqual(lob._price_levels[99].size, 3)
+
+    def test_side_change_moves_order_to_other_tree(self):
+        lob = LimitOrderBook()
+        lob.process(Order(uid=1, is_bid=True, size=5, price=100))
+        lob.process(Order(uid=1, is_bid=False, size=5, price=100))
+        self.assertIsNone(lob.best_bid)
+        self.assertEqual(lob.best_ask.price, 100)
+
+
 def _in_order(node):
     if node is None:
         return []
@@ -188,6 +215,7 @@ class RandomisedInvariantTests(TestCase):
             left = check(node.left_child, node)
             right = check(node.right_child, node)
             self.assertLessEqual(abs(right - left), 1, 'AVL balance violated')
+            self.assertEqual(node.height, max(left, right) + 1, 'stale cached height')
             return max(left, right) + 1
 
         check(tree.right_child, tree)
@@ -200,7 +228,13 @@ class RandomisedInvariantTests(TestCase):
         lob = LimitOrderBook()
         live = {}
         for uid in range(5000):
-            if live and rng.random() < 0.45:
+            if live and rng.random() < 0.15:
+                move_uid = rng.choice(list(live))
+                is_bid, _ = live[move_uid]
+                price = rng.randint(1, 60) + (0 if is_bid else 60)
+                lob.process(Order(uid=move_uid, is_bid=is_bid, size=rng.randint(1, 10), price=price))
+                live[move_uid] = (is_bid, price)
+            elif live and rng.random() < 0.45:
                 cancel_uid = rng.choice(list(live))
                 is_bid, price = live.pop(cancel_uid)
                 lob.process(Order(uid=cancel_uid, is_bid=is_bid, size=0, price=price))

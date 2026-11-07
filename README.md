@@ -25,9 +25,10 @@ book = LimitOrderBook()
 book.process(Order(uid=1, is_bid=True, size=5, price=100))   # add
 book.process(Order(uid=2, is_bid=False, size=3, price=101))
 book.process(Order(uid=1, is_bid=True, size=2, price=100))   # update size
+book.process(Order(uid=1, is_bid=True, size=2, price=99))    # new price: moved, loses queue spot
 book.process(Order(uid=2, is_bid=False, size=0, price=101))  # size 0 = cancel
 
-book.best_bid.price   # 100
+book.best_bid.price   # 99
 book.levels(depth=5)  # {'bids': [...], 'asks': [...]}
 ```
 

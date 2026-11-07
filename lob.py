@@ -156,7 +156,8 @@ class LimitOrderBook:
 
         If the order's size is 0, it is removed from the book.
 
-        If its size isn't zero and it exists within the book, the order is updated.
+        If its size isn't zero and it exists within the book, the order is
+        updated (a price or side change moves it to its new price level).
 
         If it doesn't exist, it will be added.
 
@@ -174,12 +175,24 @@ class LimitOrderBook:
     def update(self, order):
         """Updates an existing order in the book.
 
-        It also updates the order's related LimitLevel's size, accordingly.
+        A size-only change is applied in place, keeping the order's time
+        priority, and the related LimitLevel's size is adjusted accordingly.
+
+        A change of price or side moves the order: it is removed and re-added
+        at the back of its new price level, losing its time priority (as it
+        would on an exchange).
 
         :param order:
         :return:
+        :raises KeyError: if the order is not in the book.
         """
-        size_diff = self._orders[order.uid].size - order.size
+        existing = self._orders[order.uid]
+        if existing.price != order.price or existing.is_bid != order.is_bid:
+            self.remove(existing)
+            self.add(order)
+            return
+
+        size_diff = existing.size - order.size
         self._orders[order.uid].size = order.size
         self._orders[order.uid].parent_limit.size -= size_diff
 
@@ -289,7 +302,7 @@ class LimitLevel:
         balance: Balance factor of this Node
     """
     __slots__ = ['price', 'size', 'parent', 'left_child',
-                 'right_child', 'head', 'tail', 'count', 'orders']
+                 'right_child', 'orders', 'height']
 
     def __init__(self, order):
         """Initialize a Node() instance.
@@ -304,6 +317,7 @@ class LimitLevel:
         self.parent = None
         self.left_child = None
         self.right_child = None
+        self.height = 1  # cached; kept up to date by balance() and rotations
 
         # Doubly-Linked-list attributes
         self.orders = OrderList(self)
@@ -341,18 +355,11 @@ class LimitLevel:
         except AttributeError:
             return None
 
-    @property
-    def height(self):
-        """Calculates the height of the tree up to this Node.
-
-        :return: int, max height among children.
-        """
+    def _update_height(self):
+        """Recompute the cached height from our children's cached heights."""
         left_height = self.left_child.height if self.left_child else 0
         right_height = self.right_child.height if self.right_child else 0
-        if left_height > right_height:
-            return left_height + 1
-        else:
-            return right_height + 1
+        self.height = max(left_height, right_height) + 1
 
     @property
     def min(self):
@@ -444,22 +451,23 @@ class LimitLevel:
         if not isinstance(rebalance_from, LimitLevelTree):
             rebalance_from.balance()
 
-    def balance_grandpa(self):
-        """Checks if our grandparent needs rebalancing.
+    def balance_parent(self):
+        """Rebalance (and refresh heights) from our parent upwards.
 
         :return:
         """
-        if isinstance(self.grandpa, LimitLevel):
-            # Tell the grandpa to check his balance (this works its way up).
-            self.grandpa.balance()
+        if isinstance(self.parent, LimitLevel):
+            self.parent.balance()
 
     def balance(self):
         """Call the rotation method relevant to this Node's balance factor.
 
-        This call works itself up the tree recursively.
+        This call works itself up the tree, refreshing cached heights on the
+        way, so it must be called on the lowest node whose subtree changed.
 
         :return:
         """
+        self._update_height()
         if self.balance_factor > 1:
             # right is heavier
             if self.right_child.balance_factor < 0:
@@ -493,6 +501,8 @@ class LimitLevel:
             self.right_child.parent = self
         child.left_child = self
         self.parent = child
+        self._update_height()
+        child._update_height()
 
     def _rotate_right(self):
         """Rotate right around this node; our left child takes our place."""
@@ -503,6 +513,8 @@ class LimitLevel:
             self.left_child.parent = self
         child.right_child = self
         self.parent = child
+        self._update_height()
+        child._update_height()
 
     def _ll_case(self):
         """Rotate Nodes for LL Case.
@@ -569,8 +581,7 @@ class LimitLevelTree:
     def insert(self, limit_level):
         """Iterative AVL Insert method to insert a new Node.
 
-        Inserts a new node and calls the grand-parent's balance() method -
-        but only if it isn't root.
+        Inserts a new node, then rebalances from its parent upwards.
 
         :param limit_level:
         :return:
@@ -581,7 +592,7 @@ class LimitLevelTree:
                 if current_node.right_child is None:
                     current_node.right_child = limit_level
                     current_node.right_child.parent = current_node
-                    current_node.right_child.balance_grandpa()
+                    limit_level.balance_parent()
                     break
                 else:
                     current_node = current_node.right_child
@@ -590,7 +601,7 @@ class LimitLevelTree:
                 if current_node.left_child is None:
                     current_node.left_child = limit_level
                     current_node.left_child.parent = current_node
-                    current_node.left_child.balance_grandpa()
+                    limit_level.balance_parent()
                     break
                 else:
                     current_node = current_node.left_child
