@@ -190,8 +190,8 @@ class LimitOrderBook:
         relevant tree.
 
         If the removed LimitLevel was either the top bid or ask, it is replaced
-        by the next best value (which is the LimitLevel's parent in an
-        AVL tree).
+        by the next best price level on that side (its in-order neighbour in
+        the AVL tree).
 
         :param order:
         :return:
@@ -212,20 +212,12 @@ class LimitOrderBook:
                 popped_limit_level = self._price_levels.pop(popped_item.price)
                 # Remove Limit Level from LimitLevelTree
                 if popped_item.is_bid:
-                    if popped_limit_level == self.best_bid:
-                        if not isinstance(popped_limit_level.parent, LimitLevelTree):
-                            self.best_bid = popped_limit_level.parent
-                        else:
-                            self.best_bid = None
-
-                    popped_limit_level.remove()
+                    if popped_limit_level is self.best_bid:
+                        self.best_bid = popped_limit_level.predecessor
                 else:
-                    if popped_limit_level == self.best_ask:
-                        if not isinstance(popped_limit_level.parent, LimitLevelTree):
-                            self.best_ask = popped_limit_level.parent
-                        else:
-                            self.best_ask = None
-                    popped_limit_level.remove()
+                    if popped_limit_level is self.best_ask:
+                        self.best_ask = popped_limit_level.successor
+                popped_limit_level.remove()
         except KeyError:
             pass
 
@@ -265,10 +257,12 @@ class LimitOrderBook:
         :param depth: Desired number of levels on each side to return.
         :return:
         """
-        levels_sorted = sorted(self._price_levels.keys())
-        bids_all = reversed([price_level for price_level in levels_sorted if price_level < self.best_ask.price])
+        levels_sorted = sorted(self._price_levels.items())
+        bids_all = reversed([price for price, level in levels_sorted
+                             if level.orders.head.is_bid])
+        asks_all = (price for price, level in levels_sorted
+                    if not level.orders.head.is_bid)
         bids = list(islice(bids_all, depth)) if depth else list(bids_all)
-        asks_all = (price_level for price_level in levels_sorted if price_level > self.best_bid.price)
         asks = list(islice(asks_all, depth)) if depth else list(asks_all)
         levels_dict = {
             'bids' : [self._price_levels[price] for price in bids],
@@ -286,7 +280,7 @@ class LimitLevel:
 
     Attributes:
         parent: Parent node of this Node
-        is_root: Boolean, to determine if this Node is root
+        is_root: Boolean, True if this Node is the topmost node of its tree
         left_child: Left child of this Node; Values smaller than price
         right_child: Right child of this Node; Values greater than price
 
@@ -371,6 +365,37 @@ class LimitLevel:
             minimum = minimum.left_child
         return minimum
 
+    @property
+    def max(self):
+        """Returns the largest node under this node.
+
+        :return:
+        """
+        maximum = self
+        while maximum.right_child:
+            maximum = maximum.right_child
+        return maximum
+
+    @property
+    def predecessor(self):
+        """Returns the next lower LimitLevel in the tree, or None."""
+        if self.left_child:
+            return self.left_child.max
+        node = self
+        while not node.is_root and node is node.parent.left_child:
+            node = node.parent
+        return None if node.is_root else node.parent
+
+    @property
+    def successor(self):
+        """Returns the next higher LimitLevel in the tree, or None."""
+        if self.right_child:
+            return self.right_child.min
+        node = self
+        while not node.is_root and node is node.parent.right_child:
+            node = node.parent
+        return None if node.is_root else node.parent
+
     def append(self, order):
         """Wrapper function to make appending to Order List simpler.
 
@@ -385,11 +410,10 @@ class LimitLevel:
         :param new_value: LimitLevel() instance
         :return:
         """
-        if not self.is_root:
-            if self == self.parent.left_child:
-                self.parent.left_child = new_value
-            else:
-                self.parent.right_child = new_value
+        if not self.is_root and self is self.parent.left_child:
+            self.parent.left_child = new_value
+        else:
+            self.parent.right_child = new_value
         if new_value:
             new_value.parent = self.parent
 
@@ -400,44 +424,34 @@ class LimitLevel:
         """
 
         if self.left_child and self.right_child:
-            # We have two kids
+            # We have two kids: splice in our in-order successor.
             succ = self.right_child.min
-
-            # Swap Successor and current node
-            self.left_child, succ.left_child = succ.left_child, self.left_child
-            self.right_child, succ.right_child = succ.right_child, self.right_child
-            self.parent, succ.parent = succ.parent, self.parent
-            self.remove()
-            self.balance_grandpa()
-        elif self.left_child:
-            # Only left child
-            self._replace_node_in_parent(self.left_child)
-        elif self.right_child:
-            # Only right child
-            self._replace_node_in_parent(self.right_child)
+            if succ is not self.right_child:
+                rebalance_from = succ.parent
+                succ._replace_node_in_parent(succ.right_child)
+                succ.right_child = self.right_child
+                succ.right_child.parent = succ
+            else:
+                rebalance_from = succ
+            self._replace_node_in_parent(succ)
+            succ.left_child = self.left_child
+            succ.left_child.parent = succ
         else:
-            # No children
-            self._replace_node_in_parent(None)
+            rebalance_from = self.parent
+            self._replace_node_in_parent(self.left_child or self.right_child)
+
+        self.parent = self.left_child = self.right_child = None
+        if not isinstance(rebalance_from, LimitLevelTree):
+            rebalance_from.balance()
 
     def balance_grandpa(self):
         """Checks if our grandparent needs rebalancing.
 
         :return:
         """
-        if self.grandpa and self.grandpa.is_root:
-            # If our grandpa is root, we do nothing.
-            pass
-        elif self.grandpa and not self.grandpa.is_root:
-            # Tell the grandpa to check his balance.
+        if isinstance(self.grandpa, LimitLevel):
+            # Tell the grandpa to check his balance (this works its way up).
             self.grandpa.balance()
-        elif self.grandpa is None:
-            # We don't have a grandpa!
-            pass
-        else:
-            # Unforeseen things have happened. D:
-            raise NotImplementedError
-
-        return
 
     def balance(self):
         """Call the rotation method relevant to this Node's balance factor.
@@ -448,27 +462,47 @@ class LimitLevel:
         """
         if self.balance_factor > 1:
             # right is heavier
-            if self.right_child.balance_factor< 0:
+            if self.right_child.balance_factor < 0:
                 # right_child.left is heavier, RL case
                 self._rl_case()
-            elif self.right_child.balance_factor> 0:
-                # right_child.right is heavier, RR case
+            else:
+                # right_child.right is heavier (or even), RR case
                 self._rr_case()
         elif self.balance_factor < -1:
             # left is heavier
-            if self.left_child.balance_factor< 0:
-                # left_child.left is heavier, LL case
-                self._ll_case()
-            elif self.left_child.balance_factor> 0:
+            if self.left_child.balance_factor > 0:
                 # left_child.right is heavier, LR case
                 self._lr_case()
+            else:
+                # left_child.left is heavier (or even), LL case
+                self._ll_case()
         else:
             # Everything's fine.
             pass
 
         # Now check upwards
-        if not self.is_root and not self.parent.is_root:
+        if isinstance(self.parent, LimitLevel):
             self.parent.balance()
+
+    def _rotate_left(self):
+        """Rotate left around this node; our right child takes our place."""
+        child = self.right_child
+        self._replace_node_in_parent(child)
+        self.right_child = child.left_child
+        if self.right_child:
+            self.right_child.parent = self
+        child.left_child = self
+        self.parent = child
+
+    def _rotate_right(self):
+        """Rotate right around this node; our left child takes our place."""
+        child = self.left_child
+        self._replace_node_in_parent(child)
+        self.left_child = child.right_child
+        if self.left_child:
+            self.left_child.parent = self
+        child.right_child = self
+        self.parent = child
 
     def _ll_case(self):
         """Rotate Nodes for LL Case.
@@ -477,15 +511,7 @@ class LimitLevel:
             https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
         :return:
         """
-        child = self.left_child
-
-        if self.parent.is_root or self.price > self.parent.price:
-            self.parent.right_child = child
-        else:
-            self.parent.left_child = child
-
-        child.parent, self.parent = self.parent, child
-        child.right_child, self.left_child = self, child.right_child
+        self._rotate_right()
 
     def _rr_case(self):
         """Rotate Nodes for RR Case.
@@ -494,15 +520,7 @@ class LimitLevel:
             https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
         :return:
         """
-        child = self.right_child
-
-        if self.parent.is_root or self.price > self.parent.price:
-            self.parent.right_child = child
-        else:
-            self.parent.left_child = child
-
-        child.parent, self.parent = self.parent, child
-        child.left_child, self.right_child = self, child.left_child
+        self._rotate_left()
 
     def _lr_case(self):
         """Rotate Nodes for LR Case.
@@ -511,11 +529,8 @@ class LimitLevel:
             https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
         :return:
         """
-        child, grand_child = self.left_child, self.left_child.right_child
-        child.parent, grand_child.parent = grand_child, self
-        child.right_child = grand_child.left_child
-        self.left_child, grand_child.left_child = grand_child, child
-        self._ll_case()
+        self.left_child._rotate_left()
+        self._rotate_right()
 
     def _rl_case(self):
         """Rotate Nodes for RL case.
@@ -524,19 +539,13 @@ class LimitLevel:
             https://en.wikipedia.org/wiki/File:Tree_Rebalancing.gif
         :return:
         """
-        child, grand_child = self.right_child, self.right_child.left_child
-        child.parent, grand_child.parent = grand_child, self
-        child.left_child = grand_child.right_child
-        self.right_child, grand_child.right_child = grand_child, child
-        self._rr_case()
+        self.right_child._rotate_right()
+        self._rotate_left()
 
     def __str__(self):
-        if not self.is_root:
-            s = 'Node Value: %s\n' % self.price
-            s += 'Node left_child value: %s\n' % (self.left_child.price if self.left_child else 'None')
-            s += 'Node right_child value: %s\n\n' % (self.right_child.price if self.right_child else 'None')
-        else:
-            s = ''
+        s = 'Node Value: %s\n' % self.price
+        s += 'Node left_child value: %s\n' % (self.left_child.price if self.left_child else 'None')
+        s += 'Node right_child value: %s\n\n' % (self.right_child.price if self.right_child else 'None')
 
         left_side_print = self.left_child.__str__() if self.left_child else ''
         right_side_print = self.right_child.__str__() if self.right_child else ''
@@ -568,7 +577,7 @@ class LimitLevelTree:
         """
         current_node = self
         while True:
-            if current_node.is_root or limit_level.price > current_node.price:
+            if current_node is self or limit_level.price > current_node.price:
                 if current_node.right_child is None:
                     current_node.right_child = limit_level
                     current_node.right_child.parent = current_node
@@ -693,14 +702,16 @@ class Order:
         if self.previous_item is None:
             # We're head
             self.root.head = self.next_item
-            if self.next_item:
-                self.next_item.previous_item = None
+        else:
+            self.previous_item.next_item = self.next_item
 
         if self.next_item is None:
             # We're tail
             self.root.tail = self.previous_item
-            if self.previous_item:
-                self.previous_item.next_item = None
+        else:
+            self.next_item.previous_item = self.previous_item
+
+        self.previous_item = self.next_item = None
 
         # Update the Limit Level and root
         self.root.count -= 1
