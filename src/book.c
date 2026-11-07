@@ -12,12 +12,21 @@
  */
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "hftlob.h"
 
 static double
 normalisePrice(double price){
     /* -0.0 and 0.0 must map to the same Limit. */
     return price + 0.0;
+}
+
+static uint64_t
+priceKey(double price){
+    /* Prices are keyed by their (normalised) bit pattern. */
+    uint64_t key;
+    memcpy(&key, &price, sizeof(key));
+    return key;
 }
 
 static HashMap*
@@ -33,19 +42,19 @@ treeFor(Book *book, unsigned buyOrSell){
 static Limit*
 getOrCreateLimit(Book *book, unsigned buyOrSell, double price){
     HashMap *limits = limitMapFor(book, buyOrSell);
-    Limit *limit = mapGet(limits, &price, sizeof(price));
+    Limit *limit = mapGet(limits, priceKey(price));
     if(limit != NULL){
         return limit;
     }
 
-    limit = malloc(sizeof(Limit));
+    limit = poolAlloc(&book->limitPool);
     if(limit == NULL){
         return NULL;
     }
     initLimit(limit);
     limit->limitPrice = price;
-    if(!mapPut(limits, &price, sizeof(price), limit)){
-        free(limit);
+    if(!mapPut(limits, priceKey(price), limit)){
+        poolFree(&book->limitPool, limit);
         return NULL;
     }
     addNewLimit(treeFor(book, buyOrSell), limit);
@@ -70,7 +79,7 @@ dropLimitIfEmpty(Book *book, unsigned buyOrSell, Limit *limit){
         return;
     }
 
-    mapRemove(limitMapFor(book, buyOrSell), &price, sizeof(price));
+    mapRemove(limitMapFor(book, buyOrSell), priceKey(price));
     rebalanceUpwards(detachLimit(limit));
 
     if(book->highestBuy == limit){
@@ -79,7 +88,7 @@ dropLimitIfEmpty(Book *book, unsigned buyOrSell, Limit *limit){
     if(book->lowestSell == limit){
         book->lowestSell = tree->rightChild ? getMinimumLimit(tree->rightChild) : NULL;
     }
-    free(limit);
+    poolFree(&book->limitPool, limit);
 }
 
 Book*
@@ -91,6 +100,8 @@ createBook(void){
     if(book == NULL){
         return NULL;
     }
+    initPool(&book->orderPool, sizeof(Order));
+    initPool(&book->limitPool, sizeof(Limit));
     book->buyTree = createRoot();
     book->sellTree = createRoot();
     if(book->buyTree == NULL || book->sellTree == NULL
@@ -108,29 +119,11 @@ freeBook(Book *book){
     /**
      * Free the book and every Order and Limit in it.
      */
-    size_t i;
-    HashMap *limitMaps[2];
-    int m;
     if(book == NULL){
         return;
     }
-
-    for(i = 0; i < book->orders.capacity; ++i){
-        MapEntry *entry;
-        for(entry = book->orders.buckets[i]; entry != NULL; entry = entry->next){
-            free(entry->value);
-        }
-    }
-    limitMaps[0] = &book->buyLimits;
-    limitMaps[1] = &book->sellLimits;
-    for(m = 0; m < 2; ++m){
-        for(i = 0; i < limitMaps[m]->capacity; ++i){
-            MapEntry *entry;
-            for(entry = limitMaps[m]->buckets[i]; entry != NULL; entry = entry->next){
-                free(entry->value);
-            }
-        }
-    }
+    destroyPool(&book->orderPool);
+    destroyPool(&book->limitPool);
     freeMap(&book->orders);
     freeMap(&book->buyLimits);
     freeMap(&book->sellLimits);
@@ -157,11 +150,11 @@ addOrderToBook(Book *book, OrderId id, unsigned buyOrSell,
             || !(shares > 0) || isnan(price)){
         return NULL;
     }
-    if(mapGet(&book->orders, &id, sizeof(id)) != NULL){
+    if(mapGet(&book->orders, id) != NULL){
         return NULL;
     }
 
-    order = malloc(sizeof(Order));
+    order = poolAlloc(&book->orderPool);
     if(order == NULL){
         return NULL;
     }
@@ -172,11 +165,11 @@ addOrderToBook(Book *book, OrderId id, unsigned buyOrSell,
     order->limit = normalisePrice(price);
 
     limit = getOrCreateLimit(book, buyOrSell, order->limit);
-    if(limit == NULL || !mapPut(&book->orders, &id, sizeof(id), order)){
+    if(limit == NULL || !mapPut(&book->orders, id, order)){
         if(limit != NULL){
             dropLimitIfEmpty(book, buyOrSell, limit);
         }
-        free(order);
+        poolFree(&book->orderPool, order);
         return NULL;
     }
     pushOrder(limit, order);
@@ -191,14 +184,14 @@ removeOrderFromBook(Book *book, OrderId id){
      */
     Order *order;
     Limit *limit;
-    order = mapRemove(&book->orders, &id, sizeof(id));
+    order = mapRemove(&book->orders, id);
     if(order == NULL){
         return 0;
     }
     limit = order->parentLimit;
     removeOrder(order);
     dropLimitIfEmpty(book, order->buyOrSell, limit);
-    free(order);
+    poolFree(&book->orderPool, order);
     return 1;
 }
 
@@ -313,7 +306,7 @@ executeInBook(Book *book, unsigned aggressorSide, double shares,
 
 Order*
 getOrderFromBook(const Book *book, OrderId id){
-    return mapGet(&book->orders, &id, sizeof(id));
+    return mapGet(&book->orders, id);
 }
 
 Limit*
@@ -324,7 +317,7 @@ getLimitFromBook(const Book *book, unsigned buyOrSell, double price){
      */
     const HashMap *limits = buyOrSell == HFTLOB_BUY ? &book->buyLimits : &book->sellLimits;
     price = normalisePrice(price);
-    return mapGet(limits, &price, sizeof(price));
+    return mapGet(limits, priceKey(price));
 }
 
 Limit*
