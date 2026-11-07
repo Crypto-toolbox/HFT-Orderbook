@@ -1,6 +1,40 @@
 # HFT-Orderbook
 Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in C.
 
+Two flavours live side by side:
+
+- **C** (`src/`): the core data structures (limit tree, order lists).
+- **Python** (`lob.py`): a complete, pure-Python `LimitOrderBook`.
+
+## Quick start
+
+**C**: build with CMake and run the CuTest suite:
+
+```bash
+cmake -S . -B build          # add -DHFTLOB_SANITIZE=ON for ASan/UBSan
+cmake --build build
+ctest --test-dir build --output-on-failure   # or: ./build/HFT_Orderbook --test
+```
+
+**Python**: no dependencies, Python 3.9+:
+
+```python
+from lob import LimitOrderBook, Order
+
+book = LimitOrderBook()
+book.process(Order(uid=1, is_bid=True, size=5, price=100))   # add
+book.process(Order(uid=2, is_bid=False, size=3, price=101))
+book.process(Order(uid=1, is_bid=True, size=2, price=100))   # update size
+book.process(Order(uid=2, is_bid=False, size=0, price=101))  # size 0 = cancel
+
+book.best_bid.price   # 100
+book.levels(depth=5)  # {'bids': [...], 'asks': [...]}
+```
+
+Run the tests with `python -m unittest -v orderbook_tests`.
+
+## Background
+
 Based on WK Selph's Blogpost:
 
 http://howtohft.wordpress.com/2011/02/15/how-to-build-a-fast-limit-order-book/
