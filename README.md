@@ -1,10 +1,11 @@
 # HFT-Orderbook
-Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in C.
+Limit Order Book for high-frequency trading (HFT), as described by WK Selph, implemented in C, Python and Rust.
 
-Two flavours live side by side:
+Three flavours live side by side:
 
 - **C** (`src/`): a `Book` API on top of AVL limit trees, order queues and hash maps.
 - **Python** (`lob.py`): a complete, pure-Python `LimitOrderBook`.
+- **Rust** (`rust/`): a separate crate with the same operations, using integer prices and slab storage. See [`rust/README.md`](rust/README.md).
 
 ## Quick start
 
@@ -60,6 +61,12 @@ book.levels(depth=5)  # {'bids': [...], 'asks': [...]}
 ```
 
 Run the tests with `python -m unittest -v orderbook_tests`.
+
+**Rust**: no dependencies, stable toolchain:
+
+```bash
+cd rust && cargo test
+```
 
 ## Performance
 
