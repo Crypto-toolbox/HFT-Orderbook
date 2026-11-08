@@ -1,8 +1,8 @@
-# hftlob (Rust spike)
+# hftlob (Rust)
 
-A Rust take on the same limit order book as the C `Book` in `../src`, built to compare the two.
+A Rust take on the same limit order book as the C `Book` in `../src`.
 
-**Status: spike.** Tested and benchmarked, but not packaged, published or wired into CI.
+It's a separate crate: it doesn't replace the C or Python versions, and it isn't published to crates.io. CI checks formatting, clippy and tests whenever `rust/` changes.
 
 ## How it's built
 
@@ -29,6 +29,7 @@ let filled = book.execute(Side::Ask, 4, Some(100), |fill| println!("{fill:?}"));
 
 ```bash
 cargo test                                         # unit tests + randomised reference test
+cargo clippy --all-targets -- -D warnings
 cargo run --release --example bench -- [orders] [levels]
 ```
 

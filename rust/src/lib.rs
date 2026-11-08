@@ -121,7 +121,10 @@ struct Slab<T> {
 
 impl<T> Default for Slab<T> {
     fn default() -> Self {
-        Slab { items: Vec::new(), free: Vec::new() }
+        Slab {
+            items: Vec::new(),
+            free: Vec::new(),
+        }
     }
 }
 
@@ -186,7 +189,7 @@ type IdMap<V> = HashMap<OrderId, V, BuildHasherDefault<IdHasher>>;
 pub struct Book {
     bids: BTreeMap<Price, u32>, // price -> level slot
     asks: BTreeMap<Price, u32>,
-    ids: IdMap<u32>,            // order id -> node slot
+    ids: IdMap<u32>, // order id -> node slot
     nodes: Slab<Node>,
     levels: Slab<Level>,
 }
@@ -200,7 +203,10 @@ impl Book {
     pub fn with_capacity(orders: usize) -> Self {
         let mut ids = IdMap::default();
         ids.reserve(orders);
-        let mut book = Book { ids, ..Self::default() };
+        let mut book = Book {
+            ids,
+            ..Self::default()
+        };
         book.nodes.items.reserve(orders);
         book
     }
@@ -219,12 +225,18 @@ impl Book {
 
     /// Best bid as `(price, total qty)`.
     pub fn best_bid(&self) -> Option<(Price, Qty)> {
-        self.bids.iter().next_back().map(|(&p, &l)| (p, self.levels[l].qty))
+        self.bids
+            .iter()
+            .next_back()
+            .map(|(&p, &l)| (p, self.levels[l].qty))
     }
 
     /// Best ask as `(price, total qty)`.
     pub fn best_ask(&self) -> Option<(Price, Qty)> {
-        self.asks.iter().next().map(|(&p, &l)| (p, self.levels[l].qty))
+        self.asks
+            .iter()
+            .next()
+            .map(|(&p, &l)| (p, self.levels[l].qty))
     }
 
     pub fn level(&self, side: Side, price: Price) -> Option<LevelInfo> {
@@ -246,7 +258,12 @@ impl Book {
             return Err(Error::ZeroQty);
         }
         let slot = self.nodes.insert(Node {
-            order: Order { id, side, qty, price },
+            order: Order {
+                id,
+                side,
+                qty,
+                price,
+            },
             level: NIL,
             prev: NIL,
             next: NIL,
@@ -311,7 +328,9 @@ impl Book {
                 Side::Ask => self.asks.first_key_value(),
                 Side::Bid => self.bids.last_key_value(),
             };
-            let Some((&price, &level_slot)) = best else { break };
+            let Some((&price, &level_slot)) = best else {
+                break;
+            };
             let crosses = match (aggressor, limit) {
                 (_, None) => true,
                 (Side::Bid, Some(l)) => price <= l,
@@ -362,17 +381,28 @@ impl Book {
 
     fn info(&self, price: Price, level: u32) -> LevelInfo {
         let l = &self.levels[level];
-        LevelInfo { price, qty: l.qty, orders: l.count }
+        LevelInfo {
+            price,
+            qty: l.qty,
+            orders: l.count,
+        }
     }
 
     /// Append the node at `slot` to the back (newest end) of its level,
     /// creating the level if needed.
     fn link(&mut self, slot: u32) {
-        let Order { side, qty, price, .. } = self.nodes[slot].order;
+        let Order {
+            side, qty, price, ..
+        } = self.nodes[slot].order;
         let level_slot = match self.prices(side).get(&price) {
             Some(&l) => l,
             None => {
-                let l = self.levels.insert(Level { qty: 0, count: 0, oldest: NIL, newest: NIL });
+                let l = self.levels.insert(Level {
+                    qty: 0,
+                    count: 0,
+                    oldest: NIL,
+                    newest: NIL,
+                });
                 self.prices_mut(side).insert(price, l);
                 l
             }
@@ -396,7 +426,12 @@ impl Book {
 
     /// Detach the node at `slot` from its level, dropping emptied levels.
     fn unlink(&mut self, slot: u32) {
-        let Node { order, level: level_slot, prev, next } = self.nodes[slot];
+        let Node {
+            order,
+            level: level_slot,
+            prev,
+            next,
+        } = self.nodes[slot];
         if prev != NIL {
             self.nodes[prev].next = next;
         }

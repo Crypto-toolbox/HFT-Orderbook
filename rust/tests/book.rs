@@ -16,8 +16,14 @@ fn add_and_best_prices() {
     assert_eq!(book.len(), 5);
 
     let (bids, asks) = book.depth(5);
-    assert_eq!(bids.iter().map(|l| l.price).collect::<Vec<_>>(), vec![101, 100]);
-    assert_eq!(asks.iter().map(|l| l.price).collect::<Vec<_>>(), vec![102, 103]);
+    assert_eq!(
+        bids.iter().map(|l| l.price).collect::<Vec<_>>(),
+        vec![101, 100]
+    );
+    assert_eq!(
+        asks.iter().map(|l| l.price).collect::<Vec<_>>(),
+        vec![102, 103]
+    );
 }
 
 #[test]
@@ -87,9 +93,24 @@ fn execute_buy_in_price_time_priority() {
     assert_eq!(
         fills,
         vec![
-            Fill { resting_id: 1, qty: 5, price: 101, done: true },
-            Fill { resting_id: 2, qty: 3, price: 101, done: true },
-            Fill { resting_id: 3, qty: 2, price: 102, done: false },
+            Fill {
+                resting_id: 1,
+                qty: 5,
+                price: 101,
+                done: true
+            },
+            Fill {
+                resting_id: 2,
+                qty: 3,
+                price: 101,
+                done: true
+            },
+            Fill {
+                resting_id: 3,
+                qty: 2,
+                price: 102,
+                done: false
+            },
         ]
     );
     assert_eq!(book.best_ask(), Some((102, 2)));
@@ -124,17 +145,29 @@ struct Reference {
 
 impl Reference {
     fn best(&self, side: Side) -> Option<i64> {
-        let prices = self.orders.iter().filter(|o| o.side == side).map(|o| o.price);
+        let prices = self
+            .orders
+            .iter()
+            .filter(|o| o.side == side)
+            .map(|o| o.price);
         match side {
             Side::Bid => prices.max(),
             Side::Ask => prices.min(),
         }
     }
     fn level_qty(&self, side: Side, price: i64) -> u64 {
-        self.orders.iter().filter(|o| o.side == side && o.price == price).map(|o| o.qty).sum()
+        self.orders
+            .iter()
+            .filter(|o| o.side == side && o.price == price)
+            .map(|o| o.qty)
+            .sum()
     }
     fn queue(&self, side: Side, price: i64) -> Vec<u64> {
-        self.orders.iter().filter(|o| o.side == side && o.price == price).map(|o| o.id).collect()
+        self.orders
+            .iter()
+            .filter(|o| o.side == side && o.price == price)
+            .map(|o| o.id)
+            .collect()
     }
     fn execute(&mut self, aggressor: Side, mut qty: u64, limit: Option<i64>) -> Vec<Fill> {
         let mut fills = Vec::new();
@@ -149,10 +182,19 @@ impl Reference {
             if !crosses {
                 break;
             }
-            let i = self.orders.iter().position(|o| o.side == side && o.price == price).unwrap();
+            let i = self
+                .orders
+                .iter()
+                .position(|o| o.side == side && o.price == price)
+                .unwrap();
             let fill = self.orders[i].qty.min(qty);
             let done = fill == self.orders[i].qty;
-            fills.push(Fill { resting_id: self.orders[i].id, qty: fill, price, done });
+            fills.push(Fill {
+                resting_id: self.orders[i].id,
+                qty: fill,
+                price,
+                done,
+            });
             qty -= fill;
             if done {
                 self.orders.remove(i);
@@ -193,9 +235,17 @@ fn random_order_flow_matches_reference() {
             Side::Ask => 21 + rng.below(40) as i64,
         };
         if live > 0 && roll < 10 {
-            let aggressor = if rng.below(2) == 0 { Side::Bid } else { Side::Ask };
+            let aggressor = if rng.below(2) == 0 {
+                Side::Bid
+            } else {
+                Side::Ask
+            };
             let qty = 1 + rng.below(30);
-            let limit = if rng.below(4) == 0 { None } else { Some(rng.below(70) as i64) };
+            let limit = if rng.below(4) == 0 {
+                None
+            } else {
+                Some(rng.below(70) as i64)
+            };
             let mut fills = Vec::new();
             let filled = book.execute(aggressor, qty, limit, |f| fills.push(f));
             let expected = reference.execute(aggressor, qty, limit);
@@ -205,7 +255,11 @@ fn random_order_flow_matches_reference() {
             let i = rng.below(live) as usize;
             let Order { id, side, .. } = reference.orders[i];
             let qty = rng.below(10); // 0 cancels
-            let new_price = if rng.below(2) == 0 { reference.orders[i].price } else { price(side, &mut rng) };
+            let new_price = if rng.below(2) == 0 {
+                reference.orders[i].price
+            } else {
+                price(side, &mut rng)
+            };
             book.replace(id, qty, new_price).unwrap();
             if qty == 0 {
                 reference.orders.remove(i);
@@ -222,23 +276,42 @@ fn random_order_flow_matches_reference() {
             let id = reference.orders[i].id;
             assert_eq!(book.cancel(id).unwrap(), reference.orders.remove(i));
         } else {
-            let side = if rng.below(2) == 0 { Side::Bid } else { Side::Ask };
-            let order = Order { id: op, side, qty: 1 + rng.below(10), price: price(side, &mut rng) };
-            book.add(order.id, order.side, order.qty, order.price).unwrap();
+            let side = if rng.below(2) == 0 {
+                Side::Bid
+            } else {
+                Side::Ask
+            };
+            let order = Order {
+                id: op,
+                side,
+                qty: 1 + rng.below(10),
+                price: price(side, &mut rng),
+            };
+            book.add(order.id, order.side, order.qty, order.price)
+                .unwrap();
             reference.orders.push(order);
         }
 
         // Compare full state.
         assert_eq!(book.len(), reference.orders.len(), "op {op}: len");
         for side in [Side::Bid, Side::Ask] {
-            let best = reference.best(side).map(|p| (p, reference.level_qty(side, p)));
-            let got = if side == Side::Bid { book.best_bid() } else { book.best_ask() };
+            let best = reference
+                .best(side)
+                .map(|p| (p, reference.level_qty(side, p)));
+            let got = if side == Side::Bid {
+                book.best_bid()
+            } else {
+                book.best_ask()
+            };
             assert_eq!(got, best, "op {op}: best {side:?}");
         }
         if op % 100 == 0 {
             for o in &reference.orders {
                 assert_eq!(book.order(o.id), Some(o), "op {op}: order {}", o.id);
-                assert_eq!(book.queue(o.side, o.price), reference.queue(o.side, o.price));
+                assert_eq!(
+                    book.queue(o.side, o.price),
+                    reference.queue(o.side, o.price)
+                );
             }
         }
     }
