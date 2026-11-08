@@ -61,6 +61,31 @@ book.levels(depth=5)  # {'bids': [...], 'asks': [...]}
 
 Run the tests with `python -m unittest -v orderbook_tests`.
 
+## Performance
+
+The C book allocates nothing per order in steady state:
+
+- **Orders and price levels** come from per-book object pools.
+- **Lookups** use flat open-addressing hash maps (order id → order, price → level).
+
+Rough numbers for 1M orders over 5,000 price levels per side, on a cloud VM:
+
+| Operation | Time |
+|---|---|
+| add | ~170 ns |
+| resize | ~45 ns |
+| cancel | ~80 ns |
+| execute (per call) | ~270 ns |
+| `freeBook` | ~2 ms |
+
+Try it yourself:
+
+```bash
+cmake -S . -B build-rel -DCMAKE_BUILD_TYPE=Release
+cmake --build build-rel
+./build-rel/hftlob_bench [orders] [levels]
+```
+
 ## Background
 
 Based on WK Selph's Blogpost:

@@ -22,6 +22,7 @@ add_library(hftlob STATIC
         src/bst.c
         src/utils.c
         src/hashmap.c
+        src/pool.c
         src/book.c)
 target_include_directories(hftlob PUBLIC src)
 target_compile_options(hftlob PRIVATE -Wall -Wextra)
@@ -41,3 +42,7 @@ add_test(NAME cutest COMMAND HFT_Orderbook --test)
 add_executable(hftlob_example examples/basic.c)
 target_link_libraries(hftlob_example PRIVATE hftlob)
 add_test(NAME example COMMAND hftlob_example)
+
+# Benchmark (not run by ctest): build with -DCMAKE_BUILD_TYPE=Release
+add_executable(hftlob_bench bench/bench.c)
+target_link_libraries(hftlob_bench PRIVATE hftlob)
