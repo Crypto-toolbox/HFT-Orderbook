@@ -99,6 +99,21 @@ typedef struct Book{
     Pool limitPool;         /* storage for this book's Limits */
 } Book;
 
+typedef struct LevelSnapshot{
+    double price;
+    double size;
+    double totalVolume;
+    int orderCount;
+} LevelSnapshot;
+
+typedef struct OrderSnapshot{
+    OrderId uid;
+    unsigned buyOrSell;
+    double size;
+    double price;
+    double timestamp;
+} OrderSnapshot;
+
 /**
  * INIT FUNCTIONS
  */
@@ -197,6 +212,14 @@ getBestBid(const Book *book);
 
 Limit*
 getBestAsk(const Book *book);
+
+size_t
+getLevelsSnapshot(const Book *book, unsigned buyOrSell,
+                  LevelSnapshot *out, size_t maxLevels);
+
+size_t
+getLevelOrderSnapshots(const Book *book, unsigned buyOrSell, double price,
+                       OrderSnapshot *out, size_t maxOrders);
 
 /**
  * ORDER FUNCTIONS

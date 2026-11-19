@@ -329,3 +329,125 @@ Limit*
 getBestAsk(const Book *book){
     return book->lowestSell;
 }
+
+static size_t
+countLevelSnapshots(const Limit *node){
+    if(node == NULL){
+        return 0;
+    }
+    return 1 + countLevelSnapshots(node->leftChild)
+             + countLevelSnapshots(node->rightChild);
+}
+
+static size_t
+appendLevelSnapshots(const Limit *node, unsigned buyOrSell,
+                    LevelSnapshot *out, size_t maxLevels, size_t offset){
+    size_t count = offset;
+    if(node == NULL || out == NULL || maxLevels == 0 || count >= maxLevels){
+        return count;
+    }
+
+    if(buyOrSell == HFTLOB_BUY){
+        count = appendLevelSnapshots(node->rightChild, buyOrSell, out,
+                                    maxLevels, count);
+        if(count < maxLevels){
+            out[count].price = node->limitPrice;
+            out[count].size = node->size;
+            out[count].totalVolume = node->totalVolume;
+            out[count].orderCount = node->orderCount;
+            count++;
+        }
+        if(count < maxLevels){
+            count = appendLevelSnapshots(node->leftChild, buyOrSell, out,
+                                        maxLevels, count);
+        }
+    }
+    else{
+        count = appendLevelSnapshots(node->leftChild, buyOrSell, out,
+                                    maxLevels, count);
+        if(count < maxLevels){
+            out[count].price = node->limitPrice;
+            out[count].size = node->size;
+            out[count].totalVolume = node->totalVolume;
+            out[count].orderCount = node->orderCount;
+            count++;
+        }
+        if(count < maxLevels){
+            count = appendLevelSnapshots(node->rightChild, buyOrSell, out,
+                                        maxLevels, count);
+        }
+    }
+    return count;
+}
+
+size_t
+getLevelsSnapshot(const Book *book, unsigned buyOrSell,
+                  LevelSnapshot *out, size_t maxLevels){
+    const Limit *tree;
+    size_t count = 0;
+
+    if(book == NULL){
+        return 0;
+    }
+
+    tree = buyOrSell == HFTLOB_BUY ? book->buyTree : book->sellTree;
+    if(tree == NULL){
+        return 0;
+    }
+    if(out == NULL){
+        return countLevelSnapshots(tree->rightChild);
+    }
+    if(maxLevels == 0){
+        return 0;
+    }
+    return appendLevelSnapshots(tree->rightChild, buyOrSell, out,
+                                maxLevels, count);
+}
+
+static size_t
+countOrdersInLimit(const Limit *limit){
+    const Order *order;
+    size_t count = 0;
+
+    if(limit == NULL){
+        return 0;
+    }
+    for(order = limit->tailOrder; order != NULL; order = order->prevOrder){
+        count++;
+    }
+    return count;
+}
+
+size_t
+getLevelOrderSnapshots(const Book *book, unsigned buyOrSell, double price,
+                       OrderSnapshot *out, size_t maxOrders){
+    const Limit *limit;
+    const Order *order;
+    size_t count = 0;
+
+    if(book == NULL){
+        return 0;
+    }
+
+    limit = getLimitFromBook(book, buyOrSell, price);
+    if(limit == NULL){
+        return 0;
+    }
+    if(out == NULL){
+        return countOrdersInLimit(limit);
+    }
+    if(maxOrders == 0){
+        return 0;
+    }
+
+    for(order = limit->tailOrder; order != NULL && count < maxOrders;
+            order = order->prevOrder){
+        out[count].uid = order->id;
+        out[count].buyOrSell = order->buyOrSell;
+        out[count].size = order->shares;
+        out[count].price = order->limit;
+        out[count].timestamp = order->entryTime;
+        count++;
+    }
+    return count;
+}

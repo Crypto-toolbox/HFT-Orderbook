@@ -149,3 +149,7 @@ dkms.conf
 
 # JetBrain Nonesense
 *.idea
+
+# Cython generated files
+_hftlob.c
+_hftlob*.pyd
